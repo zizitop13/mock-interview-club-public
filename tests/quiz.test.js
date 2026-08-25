@@ -12,11 +12,14 @@ import {
   loadQuizzes,
   markPublished,
   parseQuiz,
+  parseQuizExplanation,
 } from '../scripts/quiz.js';
 
 const fixturePath = 'quizzes/java/read-write-lock-downgrade.md';
 const fixture = (await readFile(new URL(`../${fixturePath}`, import.meta.url), 'utf8'))
   .replace(/^status: published$/m, 'status: draft');
+const explanationPath = fixturePath.replace(/\.md$/, '-explain.md');
+const explanationFixture = await readFile(new URL(`../${explanationPath}`, import.meta.url), 'utf8');
 const plantUmlBlock = `\n\n\`\`\`plantuml
 @startuml
 Alice -> Bob: hello
@@ -33,7 +36,34 @@ test('parses the strict Markdown quiz and its hidden correct answer', () => {
   assert.equal(quiz.answers.length, 4);
   assert.equal(quiz.correctAnswer, 'c');
   assert.equal(quiz.correctOptionIndex, 2);
-  assert.match(quiz.explanation, /Downgrade safely/);
+  assert.match(quiz.explanation, /Another writer can modify or remove the entry/);
+});
+
+test('parses the matching detailed explanation and its code example', () => {
+  const quiz = parseQuiz(fixture, fixturePath);
+  const explanation = parseQuizExplanation(explanationFixture, quiz, explanationPath);
+
+  assert.equal(explanation.correctAnswer, 'c. Another writer can modify the cache between lock operations.');
+  assert.match(explanation.detailedExplanation, /lock downgrading/);
+  assert.match(explanation.codeExample, /```java/);
+  assert.match(explanation.incorrectOptions, /^- a\./m);
+});
+
+test('rejects explanation files with the wrong answer, missing code, or missing alternatives', () => {
+  const quiz = parseQuiz(fixture, fixturePath);
+
+  assert.throws(
+    () => parseQuizExplanation(explanationFixture.replace('c. Another writer', 'a. Another writer'), quiz, explanationPath),
+    /correct answer must match the quiz/,
+  );
+  assert.throws(
+    () => parseQuizExplanation(explanationFixture.replace('```java', '```'), quiz, explanationPath),
+    /code example must include a fenced code block/,
+  );
+  assert.throws(
+    () => parseQuizExplanation(explanationFixture.replace(/^- b\..*\n/m, ''), quiz, explanationPath),
+    /incorrect options must explain a, b, d/,
+  );
 });
 
 test('rejects paths nested more than one level beneath quizzes', () => {
@@ -101,10 +131,10 @@ test('creates an anonymous, ordered, non-revotable Telegram quiz payload', () =>
 
 test('routes the Telegram quiz to the requested forum topic', () => {
   const quiz = parseQuiz(fixture, fixturePath);
-  const payload = createPollPayload(quiz, '-1004403419105', 60);
+  const payload = createPollPayload(quiz, '-1001234567890', 42);
 
-  assert.equal(payload.chat_id, '-1004403419105');
-  assert.equal(payload.message_thread_id, 60);
+  assert.equal(payload.chat_id, '-1001234567890');
+  assert.equal(payload.message_thread_id, 42);
 });
 
 test('formats code as a separate Telegram HTML message', () => {
@@ -119,20 +149,20 @@ test('formats code as a separate Telegram HTML message', () => {
 
 test('routes the supporting code message to the same forum topic', () => {
   const quiz = parseQuiz(fixture, fixturePath);
-  const message = createContextMessage(quiz, '-1004403419105', 60);
+  const message = createContextMessage(quiz, '-1001234567890', 42);
 
-  assert.equal(message.chat_id, '-1004403419105');
-  assert.equal(message.message_thread_id, 60);
+  assert.equal(message.chat_id, '-1001234567890');
+  assert.equal(message.message_thread_id, 42);
 });
 
 test('extracts one PlantUML diagram and removes it from the context message', () => {
   const quiz = parseQuiz(illustratedFixture, fixturePath);
-  const diagram = createDiagramPayload(quiz, '-1004403419105', 60);
-  const context = createContextMessage(quiz, '-1004403419105', 60);
+  const diagram = createDiagramPayload(quiz, '-1001234567890', 42);
+  const context = createContextMessage(quiz, '-1001234567890', 42);
 
   assert.equal(quiz.diagramSource, '@startuml\nAlice -> Bob: hello\n@enduml');
   assert.match(diagram.photo, /^https:\/\/www\.plantuml\.com\/plantuml\/png\/[0-9A-Za-z_-]+$/);
-  assert.equal(diagram.message_thread_id, 60);
+  assert.equal(diagram.message_thread_id, 42);
   assert.doesNotMatch(context.text, /plantuml|@startuml/);
   assert.match(context.text, /language-java/);
 });
@@ -187,8 +217,42 @@ test('rejects duplicate quiz identifiers', async () => {
     const directory = path.join(temporaryRoot, 'quizzes', 'java');
     await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, 'first.md'), fixture);
+    await writeFile(path.join(directory, 'first-explain.md'), explanationFixture);
     await writeFile(path.join(directory, 'second.md'), fixture);
+    await writeFile(path.join(directory, 'second-explain.md'), explanationFixture);
     await assert.rejects(() => loadQuizzes(temporaryRoot), /duplicate quiz id/);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+test('requires every quiz to have a detailed explanation companion', async () => {
+  const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'mock-quiz-'));
+
+  try {
+    const directory = path.join(temporaryRoot, 'quizzes', 'java');
+    await mkdir(directory, { recursive: true });
+    await writeFile(path.join(directory, 'read-write-lock-downgrade.md'), fixture);
+    await assert.rejects(() => loadQuizzes(temporaryRoot), /missing detailed explanation/);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+test('rejects orphan explanation files and excludes companions from the quiz list', async () => {
+  const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'mock-quiz-'));
+
+  try {
+    const directory = path.join(temporaryRoot, 'quizzes', 'java');
+    await mkdir(directory, { recursive: true });
+    await writeFile(path.join(directory, 'read-write-lock-downgrade-explain.md'), explanationFixture);
+    await assert.rejects(() => loadQuizzes(temporaryRoot), /explanation has no matching quiz/);
+
+    await writeFile(path.join(directory, 'read-write-lock-downgrade.md'), fixture);
+    const quizzes = await loadQuizzes(temporaryRoot);
+
+    assert.equal(quizzes.length, 1);
+    assert.equal(quizzes[0].explanationFilePath, explanationPath);
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
