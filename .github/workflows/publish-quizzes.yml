@@ -1,0 +1,50 @@
+name: Publish Telegram quizzes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'quizzes/*/*.md'
+      - '.github/workflows/publish-quizzes.yml'
+      - 'scripts/quiz.js'
+      - 'scripts/publish-quizzes.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: telegram-quiz-publication
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate quizzes and run tests
+        run: |
+          npm run validate
+          npm test
+
+      - name: Configure the publication commit author
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Reserve and publish draft quizzes
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: npm run publish:quizzes
