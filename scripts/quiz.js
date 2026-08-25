@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { deflateRawSync } from 'node:zlib';
 
 const TOPIC_PATTERN = /^[a-z][a-z0-9-]*$/;
 const ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
@@ -7,6 +8,9 @@ const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 const ANSWER_PATTERN = /^([a-z])\.\s+(.+?)\s*$/;
 const CORRECT_ANSWER_PATTERN = /<!--\s*correct-answer:\s*([a-z])\s*-->/g;
 const DETAILS_PATTERN = /^<details>\s*\n<summary>Answer explanation<\/summary>\s*\n([\s\S]*?)\n<\/details>\s*$/;
+const PLANTUML_PATTERN = /```(?:plantuml|puml)\s*\n([\s\S]*?)\n```/gi;
+const PLANTUML_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+const PLANTUML_SERVER_URL = 'https://www.plantuml.com/plantuml/png';
 
 function fail(filePath, message) {
   throw new Error(`${filePath}: ${message}`);
@@ -85,6 +89,63 @@ function shortenExplanation(value) {
   return `${[...paragraph].slice(0, 197).join('').trimEnd()}...`;
 }
 
+function encodeSixBit(value) {
+  return PLANTUML_ALPHABET[value & 0x3f];
+}
+
+function encodeThreeBytes(first, second, third, byteCount) {
+  const encoded = [
+    encodeSixBit(first >> 2),
+    encodeSixBit(((first & 0x03) << 4) | (second >> 4)),
+    encodeSixBit(((second & 0x0f) << 2) | (third >> 6)),
+    encodeSixBit(third),
+  ];
+
+  return encoded.slice(0, byteCount + 1).join('');
+}
+
+export function encodePlantUml(source) {
+  const compressed = deflateRawSync(Buffer.from(source, 'utf8'), { level: 9 });
+  let encoded = '';
+
+  for (let index = 0; index < compressed.length; index += 3) {
+    const byteCount = Math.min(3, compressed.length - index);
+    encoded += encodeThreeBytes(
+      compressed[index],
+      compressed[index + 1] ?? 0,
+      compressed[index + 2] ?? 0,
+      byteCount,
+    );
+  }
+
+  return encoded;
+}
+
+function extractPlantUml(questionBody, filePath) {
+  const diagrams = [...questionBody.matchAll(PLANTUML_PATTERN)];
+
+  if (diagrams.length > 1) {
+    fail(filePath, 'expected at most one PlantUML diagram');
+  }
+
+  if (diagrams.length === 0) {
+    return { diagramSource: null, contextBody: questionBody };
+  }
+
+  const diagramSource = diagrams[0][1].trim();
+
+  if (!/^@startuml(?:\s|$)/i.test(diagramSource) || !/@enduml\s*$/i.test(diagramSource)) {
+    fail(filePath, 'PlantUML diagram must start with @startuml and end with @enduml');
+  }
+
+  const contextBody = questionBody
+    .replace(PLANTUML_PATTERN, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return { diagramSource, contextBody };
+}
+
 export function parseQuiz(source, filePath) {
   const location = parseLocation(filePath);
   const { metadata, body } = parseFrontmatter(source, filePath);
@@ -100,6 +161,7 @@ export function parseQuiz(source, filePath) {
 
   const questionBody = sectionMatch[1].trim();
   const question = firstParagraph(questionBody);
+  const { diagramSource, contextBody } = extractPlantUml(questionBody, filePath);
 
   if (!question || characterCount(question) > 300) {
     fail(filePath, 'the first question paragraph must contain 1–300 characters');
@@ -156,6 +218,8 @@ export function parseQuiz(source, filePath) {
     filePath,
     question,
     questionBody,
+    contextBody,
+    diagramSource,
     answers,
     correctAnswer,
     correctOptionIndex,
@@ -191,11 +255,11 @@ export function createPollPayload(quiz, chatId, messageThreadId) {
 }
 
 export function createContextMessage(quiz, chatId, messageThreadId) {
-  if (quiz.questionBody === quiz.question) {
+  if (quiz.contextBody === quiz.question) {
     return null;
   }
 
-  const escaped = quiz.questionBody
+  const escaped = quiz.contextBody
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
@@ -205,7 +269,7 @@ export function createContextMessage(quiz, chatId, messageThreadId) {
     return `<pre><code${className}>${code.replace(/\n$/, '')}</code></pre>`;
   });
 
-  if (characterCount(quiz.questionBody) > 4096) {
+  if (characterCount(quiz.contextBody) > 4096) {
     fail(quiz.filePath, 'supporting Telegram message exceeds 4096 characters');
   }
 
@@ -214,6 +278,18 @@ export function createContextMessage(quiz, chatId, messageThreadId) {
     ...(messageThreadId === undefined ? {} : { message_thread_id: messageThreadId }),
     text,
     parse_mode: 'HTML',
+  };
+}
+
+export function createDiagramPayload(quiz, chatId, messageThreadId) {
+  if (!quiz.diagramSource) {
+    return null;
+  }
+
+  return {
+    chat_id: chatId,
+    ...(messageThreadId === undefined ? {} : { message_thread_id: messageThreadId }),
+    photo: `${PLANTUML_SERVER_URL}/${encodePlantUml(quiz.diagramSource)}`,
   };
 }
 

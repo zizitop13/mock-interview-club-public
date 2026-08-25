@@ -4,11 +4,25 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { createContextMessage, createPollPayload, loadQuizzes, markPublished, parseQuiz } from '../scripts/quiz.js';
+import {
+  createContextMessage,
+  createDiagramPayload,
+  createPollPayload,
+  encodePlantUml,
+  loadQuizzes,
+  markPublished,
+  parseQuiz,
+} from '../scripts/quiz.js';
 
 const fixturePath = 'quizzes/java/read-write-lock-downgrade.md';
 const fixture = (await readFile(new URL(`../${fixturePath}`, import.meta.url), 'utf8'))
   .replace(/^status: published$/m, 'status: draft');
+const plantUmlBlock = `\n\n\`\`\`plantuml
+@startuml
+Alice -> Bob: hello
+@enduml
+\`\`\``;
+const illustratedFixture = fixture.replace('\n\n## Answers', `${plantUmlBlock}\n\n## Answers`);
 
 test('parses the strict Markdown quiz and its hidden correct answer', () => {
   const quiz = parseQuiz(fixture, fixturePath);
@@ -109,6 +123,36 @@ test('routes the supporting code message to the same forum topic', () => {
 
   assert.equal(message.chat_id, '-1004403419105');
   assert.equal(message.message_thread_id, 60);
+});
+
+test('extracts one PlantUML diagram and removes it from the context message', () => {
+  const quiz = parseQuiz(illustratedFixture, fixturePath);
+  const diagram = createDiagramPayload(quiz, '-1004403419105', 60);
+  const context = createContextMessage(quiz, '-1004403419105', 60);
+
+  assert.equal(quiz.diagramSource, '@startuml\nAlice -> Bob: hello\n@enduml');
+  assert.match(diagram.photo, /^https:\/\/www\.plantuml\.com\/plantuml\/png\/[0-9A-Za-z_-]+$/);
+  assert.equal(diagram.message_thread_id, 60);
+  assert.doesNotMatch(context.text, /plantuml|@startuml/);
+  assert.match(context.text, /language-java/);
+});
+
+test('uses the PlantUML deflate encoding expected by the public server', () => {
+  assert.equal(
+    encodePlantUml('@startuml\nAlice -> Bob: hello\n@enduml'),
+    'SoWkIImgAStDuNBCoKnELT2rKt3AJx9Io4ZDoSddSaZDIodDpG40',
+  );
+});
+
+test('rejects multiple or malformed PlantUML diagrams', () => {
+  assert.throws(
+    () => parseQuiz(illustratedFixture.replace('\n\n## Answers', `${plantUmlBlock}\n\n## Answers`), fixturePath),
+    /at most one PlantUML diagram/,
+  );
+  assert.throws(
+    () => parseQuiz(illustratedFixture.replace('@enduml', 'missing-end'), fixturePath),
+    /must start with @startuml and end with @enduml/,
+  );
 });
 
 test('does not create a context message for a plain question', () => {

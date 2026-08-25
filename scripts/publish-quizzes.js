@@ -3,7 +3,13 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createContextMessage, createPollPayload, loadQuizzes, markPublished } from './quiz.js';
+import {
+  createContextMessage,
+  createDiagramPayload,
+  createPollPayload,
+  loadQuizzes,
+  markPublished,
+} from './quiz.js';
 
 function runGit(args, rootDirectory) {
   return execFileSync('git', args, {
@@ -79,6 +85,12 @@ export async function publishQuizzes({
     git(['push', 'origin', `HEAD:${branch}`], rootDirectory);
 
     logger.info(`Reserved publication of ${quiz.id} in ${branch}.`);
+
+    const diagram = createDiagramPayload(quiz, chatId, messageThreadId);
+
+    if (diagram) {
+      await callTelegram('sendPhoto', diagram, { token, fetchImplementation });
+    }
 
     const contextMessage = createContextMessage(quiz, chatId, messageThreadId);
 

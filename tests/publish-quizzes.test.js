@@ -9,11 +9,15 @@ import { publishQuizzes } from '../scripts/publish-quizzes.js';
 const fixturePath = 'quizzes/java/read-write-lock-downgrade.md';
 const fixture = (await readFile(new URL(`../${fixturePath}`, import.meta.url), 'utf8'))
   .replace(/^status: published$/m, 'status: draft');
+const illustratedFixture = fixture.replace(
+  '\n\n## Answers',
+  '\n\n```plantuml\n@startuml\nAlice -> Bob: hello\n@enduml\n```\n\n## Answers',
+);
 
-async function createFixtureDirectory() {
+async function createFixtureDirectory(source = fixture) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'publish-quiz-'));
   await mkdir(path.join(root, 'quizzes', 'java'), { recursive: true });
-  await writeFile(path.join(root, fixturePath), fixture);
+  await writeFile(path.join(root, fixturePath), source);
   return root;
 }
 
@@ -74,6 +78,46 @@ test('rejects an invalid forum topic before consuming a publication attempt', as
     );
 
     assert.match(await readFile(path.join(root, fixturePath), 'utf8'), /^status: draft$/m);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('sends a PlantUML image before supporting context and poll', async () => {
+  const root = await createFixtureDirectory(illustratedFixture);
+  const events = [];
+
+  try {
+    await publishQuizzes({
+      rootDirectory: root,
+      token: 'secret-test-token',
+      chatId: '-1004403419105',
+      threadId: '60',
+      logger,
+      git(args) {
+        events.push(`git:${args[0]}`);
+      },
+      async fetchImplementation(url, request) {
+        const payload = JSON.parse(request.body);
+        events.push(`telegram:${url.split('/').at(-1)}`);
+        assert.equal(payload.message_thread_id, 60);
+
+        if (url.endsWith('/sendPhoto')) {
+          assert.match(payload.photo, /^https:\/\/www\.plantuml\.com\/plantuml\/png\//);
+        }
+
+        return telegramSuccess(43);
+      },
+    });
+
+    assert.deepEqual(events, [
+      'git:add',
+      'git:commit',
+      'git:push',
+      'telegram:sendPhoto',
+      'telegram:sendMessage',
+      'telegram:sendPoll',
+    ]);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
