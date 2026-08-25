@@ -1,6 +1,6 @@
 ---
 id: java-thread-pool-queue-selection
-status: draft
+status: published
 ---
 
 ## Question
