@@ -34,6 +34,7 @@ export async function publishQuizzes({
   rootDirectory = process.cwd(),
   token = process.env.TELEGRAM_BOT_TOKEN,
   chatId = process.env.TELEGRAM_CHAT_ID,
+  threadId = process.env.TELEGRAM_MESSAGE_THREAD_ID,
   branch = process.env.GITHUB_REF_NAME ?? 'main',
   fetchImplementation = fetch,
   git = runGit,
@@ -45,6 +46,16 @@ export async function publishQuizzes({
 
   if (branch !== 'main') {
     throw new Error('quiz publication is allowed only from the main branch');
+  }
+
+  let messageThreadId;
+
+  if (threadId !== undefined && threadId !== '') {
+    if (!/^\d+$/.test(String(threadId)) || !Number.isSafeInteger(Number(threadId)) || Number(threadId) < 1) {
+      throw new Error('TELEGRAM_MESSAGE_THREAD_ID must be a positive integer');
+    }
+
+    messageThreadId = Number(threadId);
   }
 
   const drafts = (await loadQuizzes(rootDirectory)).filter((quiz) => quiz.status === 'draft');
@@ -69,13 +80,13 @@ export async function publishQuizzes({
 
     logger.info(`Reserved publication of ${quiz.id} in ${branch}.`);
 
-    const contextMessage = createContextMessage(quiz, chatId);
+    const contextMessage = createContextMessage(quiz, chatId, messageThreadId);
 
     if (contextMessage) {
       await callTelegram('sendMessage', contextMessage, { token, fetchImplementation });
     }
 
-    const message = await callTelegram('sendPoll', createPollPayload(quiz, chatId), {
+    const message = await callTelegram('sendPoll', createPollPayload(quiz, chatId, messageThreadId), {
       token,
       fetchImplementation,
     });

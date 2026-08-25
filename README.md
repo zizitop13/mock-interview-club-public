@@ -21,6 +21,9 @@ Create a Telegram bot, add it to the target group or channel with permission to 
 
 - `TELEGRAM_BOT_TOKEN`: the BotFather bot token.
 - `TELEGRAM_CHAT_ID`: the target group or channel ID, or its `@channel_username`.
+- `TELEGRAM_MESSAGE_THREAD_ID`: optional forum topic ID; both the supporting message and quiz are sent to this topic.
+
+For a private forum-group message URL such as `https://t.me/c/4403419105/60/62`, set `TELEGRAM_CHAT_ID` to `-1004403419105` and `TELEGRAM_MESSAGE_THREAD_ID` to `60`. Add the bot to the group before publishing.
 
 The `Publish Telegram quizzes` workflow runs when quiz files change on `main`, and can also be started manually from the Actions tab. It publishes anonymous, single-answer quizzes without shuffled options or revoting. Questions with code or additional context first receive a separate formatted Telegram message.
 

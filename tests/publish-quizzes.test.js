@@ -32,6 +32,7 @@ test('pushes the consumed marker before sending context and poll', async () => {
       rootDirectory: root,
       token: 'secret-test-token',
       chatId: '@mockingbird',
+      threadId: '60',
       logger,
       git(args) {
         events.push(`git:${args[0]}`);
@@ -40,6 +41,7 @@ test('pushes the consumed marker before sending context and poll', async () => {
         const status = await readFile(path.join(root, fixturePath), 'utf8');
         assert.match(status, /^status: published$/m);
         events.push(`telegram:${url.split('/').at(-1)}`);
+        assert.equal(JSON.parse(request.body).message_thread_id, 60);
 
         if (url.endsWith('/sendPoll')) {
           assert.deepEqual(JSON.parse(request.body).correct_option_ids, [2]);
@@ -51,6 +53,27 @@ test('pushes the consumed marker before sending context and poll', async () => {
 
     assert.deepEqual(events, ['git:add', 'git:commit', 'git:push', 'telegram:sendMessage', 'telegram:sendPoll']);
     assert.deepEqual(results, [{ id: 'java-read-write-lock-downgrade', messageId: 42 }]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('rejects an invalid forum topic before consuming a publication attempt', async () => {
+  const root = await createFixtureDirectory();
+
+  try {
+    await assert.rejects(
+      () => publishQuizzes({
+        rootDirectory: root,
+        token: 'secret-test-token',
+        chatId: '-1004403419105',
+        threadId: 'not-a-topic',
+        logger,
+      }),
+      /must be a positive integer/,
+    );
+
+    assert.match(await readFile(path.join(root, fixturePath), 'utf8'), /^status: draft$/m);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

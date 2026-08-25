@@ -82,6 +82,15 @@ test('creates an anonymous, ordered, non-revotable Telegram quiz payload', () =>
   assert.equal(payload.allows_revoting, false);
   assert.equal(payload.shuffle_options, false);
   assert.deepEqual(payload.options, quiz.answers.map(({ text }) => ({ text })));
+  assert.equal(Object.hasOwn(payload, 'message_thread_id'), false);
+});
+
+test('routes the Telegram quiz to the requested forum topic', () => {
+  const quiz = parseQuiz(fixture, fixturePath);
+  const payload = createPollPayload(quiz, '-1004403419105', 60);
+
+  assert.equal(payload.chat_id, '-1004403419105');
+  assert.equal(payload.message_thread_id, 60);
 });
 
 test('formats code as a separate Telegram HTML message', () => {
@@ -91,6 +100,15 @@ test('formats code as a separate Telegram HTML message', () => {
   assert.equal(message.parse_mode, 'HTML');
   assert.match(message.text, /<pre><code class="language-java">/);
   assert.match(message.text, /cache\.containsKey/);
+  assert.equal(Object.hasOwn(message, 'message_thread_id'), false);
+});
+
+test('routes the supporting code message to the same forum topic', () => {
+  const quiz = parseQuiz(fixture, fixturePath);
+  const message = createContextMessage(quiz, '-1004403419105', 60);
+
+  assert.equal(message.chat_id, '-1004403419105');
+  assert.equal(message.message_thread_id, 60);
 });
 
 test('does not create a context message for a plain question', () => {

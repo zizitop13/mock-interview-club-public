@@ -174,9 +174,10 @@ export function markPublished(source, filePath) {
   return source.replace(/^(status:\s*)draft\s*$/m, '$1published');
 }
 
-export function createPollPayload(quiz, chatId) {
+export function createPollPayload(quiz, chatId, messageThreadId) {
   return {
     chat_id: chatId,
+    ...(messageThreadId === undefined ? {} : { message_thread_id: messageThreadId }),
     question: quiz.question,
     options: quiz.answers.map(({ text }) => ({ text })),
     type: 'quiz',
@@ -189,7 +190,7 @@ export function createPollPayload(quiz, chatId) {
   };
 }
 
-export function createContextMessage(quiz, chatId) {
+export function createContextMessage(quiz, chatId, messageThreadId) {
   if (quiz.questionBody === quiz.question) {
     return null;
   }
@@ -208,7 +209,12 @@ export function createContextMessage(quiz, chatId) {
     fail(quiz.filePath, 'supporting Telegram message exceeds 4096 characters');
   }
 
-  return { chat_id: chatId, text, parse_mode: 'HTML' };
+  return {
+    chat_id: chatId,
+    ...(messageThreadId === undefined ? {} : { message_thread_id: messageThreadId }),
+    text,
+    parse_mode: 'HTML',
+  };
 }
 
 export async function loadQuizzes(rootDirectory = process.cwd()) {
