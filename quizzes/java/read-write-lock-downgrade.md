@@ -1,6 +1,6 @@
 ---
 id: java-read-write-lock-downgrade
-status: published
+status: draft
 ---
 
 ## Question
