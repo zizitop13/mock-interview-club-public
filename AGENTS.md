@@ -6,8 +6,11 @@
 - Store every quiz at `quizzes/<topic>/<slug>.md`; use exactly one topic directory, such as `quizzes/java/` or `quizzes/sql/`.
 - Never create a deeper hierarchy under `quizzes/`.
 - Keep exactly one quiz in each Markdown file and follow the strict format documented by the `create-quiz` skill.
+- Every `quizzes/<topic>/<slug>.md` quiz must have a companion `quizzes/<topic>/<slug>-explain.md`; create or update both files together through the `create-quiz` skill.
+- Reserve the `-explain.md` suffix for companion documents; never use it for a quiz filename.
 - Use consecutive lowercase answer labels, starting with `a.`.
-- Hide exactly one correct answer inside an HTML comment and place the complete explanation inside a collapsed `<details>` section.
+- Hide exactly one correct answer inside an HTML comment and place a concise Telegram-ready explanation inside a collapsed `<details>` section.
+- The companion explanation must contain the correct answer, a thorough explanation, a fenced code example, explanations of every incorrect option, and an optional PlantUML diagram when helpful.
 - A quiz may contain at most one fenced `plantuml` or `puml` diagram inside `## Question`. It is rendered through the public PlantUML Server and sent before the supporting text and poll.
 - New quizzes must have `status: draft`; never change a `published` quiz back to `draft`.
 - Treat `published` as a consumed publication attempt, even if Telegram delivery failed. This preserves at-most-once behavior.
@@ -19,3 +22,4 @@
 - Keep Telegram polls anonymous, single-answer, non-revotable, and in their original answer order.
 - Preserve the reserve-before-send sequence: commit and push `status: published` before calling Telegram.
 - Preserve Telegram publication order for illustrated quizzes: PlantUML image, supporting text/code when present, then poll.
+- Never publish `-explain.md` companion documents as Telegram polls.

@@ -1,12 +1,12 @@
 ---
 name: create-quiz
-description: Create or edit a strictly formatted, automatically publishable technical interview quiz in a single topic directory under quizzes. Use whenever adding or changing Java, SQL, concurrency, system design, or other multiple-choice interview questions in this repository.
+description: Create or edit a strictly formatted, automatically publishable technical interview quiz and its mandatory detailed explanation companion in a single topic directory under quizzes. Use whenever adding or changing Java, SQL, Kafka, concurrency, system design, or other multiple-choice interview questions in this repository.
 ---
 
 # Create an interview quiz
 
-1. Choose exactly one lowercase topic directory and a lowercase kebab-case filename: `quizzes/java/read-write-lock-downgrade.md`. Never nest topics.
-2. Create one Markdown file using this exact structure:
+1. Choose exactly one lowercase topic directory and a lowercase kebab-case filename: `quizzes/java/read-write-lock-downgrade.md`. Never nest topics or use the reserved `-explain` suffix for a quiz. Always create or update its companion file alongside it: `quizzes/java/read-write-lock-downgrade-explain.md`.
+2. Create the quiz Markdown file using this exact structure:
 
 ````markdown
 ---
@@ -40,17 +40,50 @@ d. Fourth plausible answer.
 <details>
 <summary>Answer explanation</summary>
 
-Explain why the selected answer is correct and why the alternatives are wrong.
+Briefly explain why the selected answer is correct. Telegram displays this explanation after voting.
 
 </details>
 ````
 
-3. Use a globally unique lowercase kebab-case `id`; prefix it with the topic.
-4. Keep the first question paragraph to 300 characters or fewer. Put code or additional context below that first paragraph; it is sent as a separate Telegram message.
-5. Optionally include one fenced `plantuml` or `puml` block inside `## Question`. Start it with `@startuml` and end it with `@enduml`. Its source is sent to the public PlantUML Server for PNG rendering, so do not put secrets or private data in it.
-6. Provide 2–12 single-line answers, each no longer than 100 characters. Label them consecutively `a.`, `b.`, `c.`, and so on.
-7. Include exactly one `<!-- correct-answer: x -->` comment. Its lowercase letter must match an existing option. HTML comments are hidden in rendered Markdown, but remain visible in source.
-8. Put a meaningful answer explanation inside `<details>`. Its first paragraph becomes Telegram's short explanation; keep that paragraph within 200 characters where practical. The remainder can contain a detailed analysis.
-9. Write credible distractors of approximately equal length. Avoid making the correct answer consistently longer than the alternatives.
-10. Never reset a `published` quiz to `draft`: the status records that its single publication attempt has already been reserved.
-11. Run `npm run validate` and `npm test` before finishing.
+3. Create the companion `<slug>-explain.md` using this exact structure:
+
+````markdown
+# Descriptive explanation title
+
+## Correct answer
+
+c. Third plausible answer.
+
+## Detailed explanation
+
+Explain the underlying mechanism, relevant guarantees, failure modes, and practical tradeoffs.
+
+```plantuml
+@startuml
+Alice -> Bob: Optional diagram when it materially clarifies the explanation
+@enduml
+```
+
+## Code example
+
+```java
+// Include a practical, language-tagged code example.
+```
+
+## Why the other options are incorrect
+
+- a. Explain why the first option is incorrect.
+- b. Explain why the second option is incorrect.
+- d. Explain why the fourth option is incorrect.
+````
+
+4. Use a globally unique lowercase kebab-case `id`; prefix it with the topic.
+5. Keep the first question paragraph to 300 characters or fewer. Put code or additional context below that first paragraph; it is sent as a separate Telegram message.
+6. Optionally include one fenced `plantuml` or `puml` block inside `## Question` and at most one in the companion. Start each with `@startuml` and end it with `@enduml`. Question diagrams are sent to the public PlantUML Server for PNG rendering, so do not put secrets or private data in them.
+7. Provide 2–12 single-line answers, each no longer than 100 characters. Label them consecutively `a.`, `b.`, `c.`, and so on.
+8. Include exactly one `<!-- correct-answer: x -->` comment. Its lowercase letter must match an existing option. HTML comments are hidden in rendered Markdown, but remain visible in source.
+9. Put a meaningful, concise answer explanation inside `<details>`. Its first paragraph becomes Telegram's short explanation; keep that paragraph within 200 characters where practical.
+10. In the companion, copy the correct answer letter and text exactly, include a thorough explanation and at least one fenced code example with a language, and explain every incorrect answer in order using `- a. Explanation` bullets.
+11. Write credible distractors of approximately equal length. Avoid making the correct answer consistently longer than the alternatives.
+12. Never reset a `published` quiz to `draft`: the status records that its single publication attempt has already been reserved. Never treat its `-explain.md` companion as a publishable quiz.
+13. Run `npm run validate` and `npm test` before finishing.
