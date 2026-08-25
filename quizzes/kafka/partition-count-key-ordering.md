@@ -1,6 +1,6 @@
 ---
 id: kafka-partition-count-key-ordering
-status: draft
+status: published
 ---
 
 ## Question
