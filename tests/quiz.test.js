@@ -7,7 +7,9 @@ import test from 'node:test';
 import {
   createContextMessage,
   createDiagramPayload,
+  createExplanationUrl,
   createPollPayload,
+  createTelegramExplanation,
   encodePlantUml,
   loadQuizzes,
   markPublished,
@@ -127,6 +129,24 @@ test('creates an anonymous, ordered, non-revotable Telegram quiz payload', () =>
   assert.equal(payload.shuffle_options, false);
   assert.deepEqual(payload.options, quiz.answers.map(({ text }) => ({ text })));
   assert.equal(Object.hasOwn(payload, 'message_thread_id'), false);
+});
+
+test('creates a stable detailed explanation URL for GitHub Pages', () => {
+  const quiz = { ...parseQuiz(fixture, fixturePath), explanationFilePath: explanationPath };
+
+  assert.equal(
+    createExplanationUrl(quiz, 'https://zizitop13.github.io/mock-interview-club-public/'),
+    'https://zizitop13.github.io/mock-interview-club-public/quizzes/java/read-write-lock-downgrade-explain/',
+  );
+  assert.throws(() => createExplanationUrl(quiz, 'ftp://example.test'), /must use HTTP or HTTPS/);
+});
+
+test('adds the long explanation link within the Telegram explanation limit', () => {
+  const url = 'https://example.test/mock-interview-club-public/quizzes/java/read-write-lock-downgrade-explain/';
+  const explanation = createTelegramExplanation('x'.repeat(200), url);
+
+  assert.match(explanation, /More: https:\/\/example\.test\//);
+  assert.ok([...explanation].length <= 200);
 });
 
 test('routes the Telegram quiz to the requested forum topic', () => {

@@ -15,6 +15,7 @@
 - New quizzes must have `status: draft`; never change a `published` quiz back to `draft`.
 - Treat `published` as a consumed publication attempt, even if Telegram delivery failed. This preserves at-most-once behavior.
 - Run `npm run validate` and `npm test` after creating or editing quizzes or publication code.
+- GitHub Pages content and navigation are generated from `quizzes/<topic>/`; never maintain a second hand-written quiz index.
 
 ## Publishing
 
@@ -23,3 +24,11 @@
 - Preserve the reserve-before-send sequence: commit and push `status: published` before calling Telegram.
 - Preserve Telegram publication order for illustrated quizzes: PlantUML image, supporting text/code when present, then poll.
 - Never publish `-explain.md` companion documents as Telegram polls.
+- Include the generated GitHub Pages URL for the matching `-explain.md` page in every Telegram quiz explanation.
+
+## GitHub Pages
+
+- Keep reusable layouts and assets in `site/`; generated files belong in `.site-source/` and must not be committed.
+- Preserve stable page URLs: `/quizzes/<topic>/<slug>/` and `/quizzes/<topic>/<slug>-explain/`.
+- Render fenced `plantuml` and `puml` blocks through the public PlantUML Server. Never put secrets or private data in diagrams.
+- Run `npm run build:site` after changing the generator, layouts, assets, or quiz content.

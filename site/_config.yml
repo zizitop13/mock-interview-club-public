@@ -1,0 +1,7 @@
+title: Mock Interview Club
+description: Technical interview quizzes with detailed explanations, code, and diagrams.
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+exclude:
+  - README.md
