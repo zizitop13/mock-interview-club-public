@@ -42,11 +42,14 @@ jobs:
         with:
           node-version: 24
 
-      - name: Validate content and generate the site
-        run: |
-          npm run validate
-          npm test
-          npm run build:site
+      - name: Validate quiz content
+        run: npm run validate
+
+      - name: Run tests
+        run: npm test
+
+      - name: Generate the site
+        run: npm run build:site
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
