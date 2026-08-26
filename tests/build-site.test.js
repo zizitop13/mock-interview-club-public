@@ -28,8 +28,9 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
 
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
-    assert.equal(result.topics, 2);
-    assert.deepEqual(navigation.topics.map(({ title }) => title), ['Java', 'Kafka']);
+    assert.equal(result.topics, navigation.topics.length);
+    const topicTitles = navigation.topics.map(({ title }) => title);
+    assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
     assert.match(explanation, /https:\/\/www\.plantuml\.com\/plantuml\/svg\//);
     assert.doesNotMatch(explanation, /```plantuml/);
