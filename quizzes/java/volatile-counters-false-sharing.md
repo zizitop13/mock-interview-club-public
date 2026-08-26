@@ -1,6 +1,6 @@
 ---
 id: java-volatile-counters-false-sharing
-status: draft
+status: published
 ---
 
 ## Question
