@@ -40,6 +40,7 @@ test('pushes the consumed marker before sending context and poll', async () => {
       token: 'secret-test-token',
       chatId: '@mockingbird',
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
       threadId: '42',
       logger,
       git(args) {
@@ -82,6 +83,7 @@ test('rejects an invalid forum topic before consuming a publication attempt', as
         token: 'secret-test-token',
         chatId: '-1001234567890',
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
         threadId: 'not-a-topic',
         logger,
       }),
@@ -104,6 +106,7 @@ test('sends a PlantUML image before supporting context and poll', async () => {
       token: 'secret-test-token',
       chatId: '-1001234567890',
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
       threadId: '42',
       logger,
       git(args) {
@@ -146,6 +149,7 @@ test('does not call Telegram when pushing the publication marker fails', async (
         token: 'secret-test-token',
         chatId: '@mockingbird',
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
         logger,
         git(args) {
           if (args[0] === 'push') {
@@ -176,6 +180,7 @@ test('never retries a published quiz after Telegram delivery fails', async () =>
         token: 'secret-test-token',
         chatId: '@mockingbird',
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
         logger,
         git() {},
         async fetchImplementation() {
@@ -191,6 +196,7 @@ test('never retries a published quiz after Telegram delivery fails', async () =>
       token: 'secret-test-token',
       chatId: '@mockingbird',
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
       logger,
       git() {},
       async fetchImplementation() {
@@ -210,7 +216,7 @@ test('fails before consuming a quiz when Telegram secrets are absent', async () 
 
   try {
     await assert.rejects(
-      () => publishQuizzes({ rootDirectory: root, token: '', chatId: '', siteBaseUrl: '', logger }),
+      () => publishQuizzes({ rootDirectory: root, token: '', chatId: '', siteBaseUrl: '', branch: 'main', logger }),
       /must all be configured/,
     );
 
