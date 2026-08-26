@@ -39,6 +39,8 @@ test('pushes the consumed marker before sending context and poll', async () => {
       rootDirectory: root,
       token: 'secret-test-token',
       chatId: '@mockingbird',
+      siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
       threadId: '42',
       logger,
       git(args) {
@@ -51,7 +53,13 @@ test('pushes the consumed marker before sending context and poll', async () => {
         assert.equal(JSON.parse(request.body).message_thread_id, 42);
 
         if (url.endsWith('/sendPoll')) {
-          assert.deepEqual(JSON.parse(request.body).correct_option_ids, [2]);
+          const payload = JSON.parse(request.body);
+          assert.deepEqual(payload.correct_option_ids, [2]);
+          assert.match(
+            payload.explanation,
+            /More: https:\/\/example\.test\/mock-interview-club-public\/quizzes\/java\/read-write-lock-downgrade-explain\//,
+          );
+          assert.ok([...payload.explanation].length <= 200);
         }
 
         return telegramSuccess(42);
@@ -74,6 +82,8 @@ test('rejects an invalid forum topic before consuming a publication attempt', as
         rootDirectory: root,
         token: 'secret-test-token',
         chatId: '-1001234567890',
+      siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
         threadId: 'not-a-topic',
         logger,
       }),
@@ -95,6 +105,8 @@ test('sends a PlantUML image before supporting context and poll', async () => {
       rootDirectory: root,
       token: 'secret-test-token',
       chatId: '-1001234567890',
+      siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
       threadId: '42',
       logger,
       git(args) {
@@ -136,6 +148,8 @@ test('does not call Telegram when pushing the publication marker fails', async (
         rootDirectory: root,
         token: 'secret-test-token',
         chatId: '@mockingbird',
+      siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
         logger,
         git(args) {
           if (args[0] === 'push') {
@@ -165,6 +179,8 @@ test('never retries a published quiz after Telegram delivery fails', async () =>
         rootDirectory: root,
         token: 'secret-test-token',
         chatId: '@mockingbird',
+      siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
         logger,
         git() {},
         async fetchImplementation() {
@@ -179,6 +195,8 @@ test('never retries a published quiz after Telegram delivery fails', async () =>
       rootDirectory: root,
       token: 'secret-test-token',
       chatId: '@mockingbird',
+      siteBaseUrl: 'https://example.test/mock-interview-club-public',
+      branch: 'main',
       logger,
       git() {},
       async fetchImplementation() {
@@ -198,8 +216,8 @@ test('fails before consuming a quiz when Telegram secrets are absent', async () 
 
   try {
     await assert.rejects(
-      () => publishQuizzes({ rootDirectory: root, token: '', chatId: '', logger }),
-      /must both be configured/,
+      () => publishQuizzes({ rootDirectory: root, token: '', chatId: '', siteBaseUrl: '', branch: 'main', logger }),
+      /must all be configured/,
     );
 
     assert.match(await readFile(path.join(root, fixturePath), 'utf8'), /^status: draft$/m);
@@ -210,7 +228,7 @@ test('fails before consuming a quiz when Telegram secrets are absent', async () 
 
 test('refuses to publish from branches other than main', async () => {
   await assert.rejects(
-    () => publishQuizzes({ token: 'token', chatId: '@mockingbird', branch: 'feature', logger }),
+    () => publishQuizzes({ token: 'token', chatId: '@mockingbird', siteBaseUrl: 'https://example.test', branch: 'feature', logger }),
     /only from the main branch/,
   );
 });

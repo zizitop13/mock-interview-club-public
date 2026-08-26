@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ site.description | escape }}">
+    <title>{{ page.title | escape }} · {{ site.title | escape }}</title>
+    <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+    <script src="{{ '/assets/site.js' | relative_url }}" defer></script>
+  </head>
+  <body>
+    <button class="menu-button" type="button" aria-controls="site-navigation" aria-expanded="false">
+      <span aria-hidden="true">☰</span> Library
+    </button>
+
+    <aside class="sidebar" id="site-navigation">
+      <a class="brand" href="{{ '/' | relative_url }}">
+        <span class="brand-mark">M</span>
+        <span>
+          <strong>Mock Interview Club</strong>
+          <small>Question library</small>
+        </span>
+      </a>
+
+      <label class="search-label" for="navigation-search">Find a question</label>
+      <input class="search" id="navigation-search" type="search" placeholder="Kafka, locks, queues…" autocomplete="off">
+
+      <nav class="navigation" aria-label="Quiz library">
+        {% for topic in site.data.navigation.topics %}
+          <section class="topic" data-topic>
+            <h2>{{ topic.title }}</h2>
+            {% for quiz in topic.quizzes %}
+              <div class="nav-item" data-nav-item data-search="{{ topic.title | downcase }} {{ quiz.title | downcase }}">
+                <a class="quiz-link" href="{{ quiz.quiz_url | relative_url }}">{{ quiz.title }}</a>
+                <a class="explanation-link" href="{{ quiz.explanation_url | relative_url }}">Explanation</a>
+              </div>
+            {% endfor %}
+          </section>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div class="scrim" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="page-header">
+        {% if page.topic %}<p class="eyebrow">{{ page.topic }} · {{ page.kind }}</p>{% endif %}
+        <h1>{{ page.title }}</h1>
+        {% if page.paired_url %}
+          {% if page.kind == 'Quiz' %}
+            <a class="paired-link" href="{{ page.paired_url | relative_url }}">Read the detailed explanation →</a>
+          {% else %}
+            <a class="paired-link" href="{{ page.paired_url | relative_url }}">← Back to the quiz</a>
+          {% endif %}
+        {% endif %}
+      </header>
+
+      <article class="content">
+        {{ content }}
+      </article>
+
+      <footer class="footer">
+        Generated from the Markdown files in
+        <a href="https://github.com/zizitop13/mock-interview-club-public">mock-interview-club-public</a>.
+      </footer>
+    </main>
+  </body>
+</html>

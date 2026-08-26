@@ -91,6 +91,18 @@ function shortenExplanation(value) {
   return `${[...paragraph].slice(0, 197).join('').trimEnd()}...`;
 }
 
+function shortenTo(value, maximumLength) {
+  if (characterCount(value) <= maximumLength) {
+    return value;
+  }
+
+  if (maximumLength < 4) {
+    return [...value].slice(0, maximumLength).join('');
+  }
+
+  return `${[...value].slice(0, maximumLength - 3).join('').trimEnd()}...`;
+}
+
 function encodeSixBit(value) {
   return PLANTUML_ALPHABET[value & 0x3f];
 }
@@ -303,7 +315,45 @@ export function markPublished(source, filePath) {
   return source.replace(/^(status:\s*)draft\s*$/m, '$1published');
 }
 
-export function createPollPayload(quiz, chatId, messageThreadId) {
+export function createExplanationUrl(quiz, siteBaseUrl) {
+  let baseUrl;
+
+  try {
+    baseUrl = new URL(`${siteBaseUrl.replace(/\/+$/, '')}/`);
+  } catch {
+    fail(quiz.filePath, 'QUIZ_SITE_BASE_URL must be a valid HTTP or HTTPS URL');
+  }
+
+  if (!['http:', 'https:'].includes(baseUrl.protocol)) {
+    fail(quiz.filePath, 'QUIZ_SITE_BASE_URL must use HTTP or HTTPS');
+  }
+
+  const explanationPath = quiz.explanationFilePath ?? quiz.filePath.replace(/\.md$/, '-explain.md');
+  const pagePath = explanationPath
+    .replace(/\.md$/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+
+  return new URL(`${pagePath}/`, baseUrl).toString();
+}
+
+export function createTelegramExplanation(shortExplanation, explanationUrl) {
+  if (!explanationUrl) {
+    return shortExplanation;
+  }
+
+  const suffix = `\n\nMore: ${explanationUrl}`;
+  const remainingLength = 200 - characterCount(suffix);
+
+  if (remainingLength < 1) {
+    throw new Error('the detailed explanation URL is too long for a Telegram quiz explanation');
+  }
+
+  return `${shortenTo(shortExplanation, remainingLength)}${suffix}`;
+}
+
+export function createPollPayload(quiz, chatId, messageThreadId, explanationUrl) {
   return {
     chat_id: chatId,
     ...(messageThreadId === undefined ? {} : { message_thread_id: messageThreadId }),
@@ -315,7 +365,7 @@ export function createPollPayload(quiz, chatId, messageThreadId) {
     allows_revoting: false,
     shuffle_options: false,
     correct_option_ids: [quiz.correctOptionIndex],
-    explanation: quiz.telegramExplanation,
+    explanation: createTelegramExplanation(quiz.telegramExplanation, explanationUrl),
   };
 }
 

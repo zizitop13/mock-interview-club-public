@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
   createContextMessage,
   createDiagramPayload,
+  createExplanationUrl,
   createPollPayload,
   loadQuizzes,
   markPublished,
@@ -41,13 +42,14 @@ export async function publishQuizzes({
   token = process.env.TELEGRAM_BOT_TOKEN,
   chatId = process.env.TELEGRAM_CHAT_ID,
   threadId = process.env.TELEGRAM_MESSAGE_THREAD_ID,
+  siteBaseUrl = process.env.QUIZ_SITE_BASE_URL,
   branch = process.env.GITHUB_REF_NAME ?? 'main',
   fetchImplementation = fetch,
   git = runGit,
   logger = console,
 } = {}) {
-  if (!token || !chatId) {
-    throw new Error('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must both be configured');
+  if (!token || !chatId || !siteBaseUrl) {
+    throw new Error('TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, and QUIZ_SITE_BASE_URL must all be configured');
   }
 
   if (branch !== 'main') {
@@ -98,7 +100,8 @@ export async function publishQuizzes({
       await callTelegram('sendMessage', contextMessage, { token, fetchImplementation });
     }
 
-    const message = await callTelegram('sendPoll', createPollPayload(quiz, chatId, messageThreadId), {
+    const explanationUrl = createExplanationUrl(quiz, siteBaseUrl);
+    const message = await callTelegram('sendPoll', createPollPayload(quiz, chatId, messageThreadId, explanationUrl), {
       token,
       fetchImplementation,
     });
