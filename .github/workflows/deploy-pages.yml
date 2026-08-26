@@ -9,6 +9,7 @@ on:
       - 'scripts/build-site.js'
       - 'scripts/quiz.js'
       - 'site/**'
+      - 'tests/**'
       - '.github/workflows/deploy-pages.yml'
   pull_request:
     branches:
@@ -18,6 +19,7 @@ on:
       - 'scripts/build-site.js'
       - 'scripts/quiz.js'
       - 'site/**'
+      - 'tests/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
