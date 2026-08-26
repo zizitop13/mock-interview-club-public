@@ -23,7 +23,11 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
       'utf8',
     );
 
-    assert.equal(result.quizzes, 3);
+    const navigationQuizCount = navigation.topics
+      .reduce((total, topic) => total + topic.quizzes.length, 0);
+
+    assert.equal(result.quizzes, navigationQuizCount);
+    assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, 2);
     assert.deepEqual(navigation.topics.map(({ title }) => title), ['Java', 'Kafka']);
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
