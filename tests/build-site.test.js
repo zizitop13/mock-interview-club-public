@@ -30,10 +30,14 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
     assert.match(explanation, /https:\/\/www\.plantuml\.com\/plantuml\/svg\//);
     assert.doesNotMatch(explanation, /```plantuml/);
     assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer>/g) ?? []).length, 4);
-    assert.equal((quiz.match(/<div class="quiz-answer-row">/g) ?? []).length, 4);
+    assert.equal((quiz.match(/<div class="quiz-answer-row" data-correct="(?:true|false)">/g) ?? []).length, 4);
     assert.match(quiz, /<label class="quiz-answer">[\s\S]*?<strong>a\.<\/strong>/);
-    assert.match(quiz, /data-answer-explanation hidden/);
-    assert.match(quiz, /<details data-answer-details hidden>/);
+    assert.equal((quiz.match(/data-correct="true"/g) ?? []).length, 1);
+    assert.equal((quiz.match(/data-correct="false"/g) ?? []).length, 3);
+    assert.match(quiz, /data-answer-result hidden/);
+    assert.match(quiz, /Another writer can modify or remove the entry/);
+    assert.match(quiz, /Read the full explanation/);
+    assert.doesNotMatch(quiz, /<details>/);
     assert.doesNotMatch(quiz, /^a\. /m);
     assert.match(explanation, /data-copy-diagram/);
     assert.match(explanation, /<template class="diagram-source">@startuml/);

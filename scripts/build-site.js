@@ -48,10 +48,10 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
-function formatQuizAnswers(markdown, answers, explanationUrl) {
+function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explanationUrl) {
   const answerRows = answers
     .map(({ letter, text }) => [
-      '<div class="quiz-answer-row">',
+      `<div class="quiz-answer-row" data-correct="${letter === correctAnswer}">`,
       '  <label class="quiz-answer">',
       '    <input type="checkbox" data-quiz-answer>',
       `    <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`,
@@ -62,8 +62,18 @@ function formatQuizAnswers(markdown, answers, explanationUrl) {
 
   return markdown.replace(
     /## Answers\s*\n[\s\S]*?(?=<!--\s*correct-answer:)/,
-    `## Answers\n\n<div class="quiz-answers">\n${answerRows}\n</div>\n<a class="answer-explanation-link" href="{{ '${explanationUrl}' | relative_url }}" data-answer-explanation hidden>Read the detailed explanation →</a>\n\n`,
-  ).replace('<details>', '<details data-answer-details hidden>');
+    [
+      '## Answers',
+      '',
+      `<div class="quiz-answers">\n${answerRows}\n</div>`,
+      '<section class="answer-result" data-answer-result hidden aria-live="polite">',
+      '  <strong class="answer-result-status" data-answer-status></strong>',
+      `  <p>${escapeHtml(explanation)}</p>`,
+      `  <a class="answer-explanation-link" href="{{ '${explanationUrl}' | relative_url }}">Read the full explanation →</a>`,
+      '</section>',
+      '',
+    ].join('\n'),
+  ).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
 }
 
 function pageFrontmatter({ title, topic, kind, url, pairedUrl }) {
@@ -114,7 +124,7 @@ export async function buildSite({
     await mkdir(destinationDirectory, { recursive: true });
     await writeFile(
       path.join(destinationDirectory, `${quiz.slug}.md`),
-      `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, explanationUrl))}\n`,
+      `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl))}\n`,
     );
     await writeFile(
       path.join(destinationDirectory, `${quiz.slug}-explain.md`),

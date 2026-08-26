@@ -31,14 +31,22 @@ for (const answers of document.querySelectorAll('.quiz-answers')) {
       if (checkbox !== event.target) checkbox.checked = false;
     }
 
-    const explanation = answers.parentElement.querySelector('[data-answer-explanation]');
-    if (explanation) explanation.hidden = !event.target.checked;
-
-    const details = answers.parentElement.querySelector('[data-answer-details]');
-    if (details) {
-      details.hidden = !event.target.checked;
-      if (!event.target.checked) details.open = false;
+    for (const row of answers.querySelectorAll('.quiz-answer-row')) {
+      row.classList.remove('is-correct', 'is-incorrect');
     }
+
+    const result = answers.parentElement.querySelector('[data-answer-result]');
+    if (!result) return;
+
+    result.hidden = !event.target.checked;
+    if (!event.target.checked) return;
+
+    const row = event.target.closest('.quiz-answer-row');
+    const correct = row.dataset.correct === 'true';
+    row.classList.add(correct ? 'is-correct' : 'is-incorrect');
+    result.classList.toggle('is-correct', correct);
+    result.classList.toggle('is-incorrect', !correct);
+    result.querySelector('[data-answer-status]').textContent = correct ? 'Correct!' : 'Incorrect';
   });
 }
 
