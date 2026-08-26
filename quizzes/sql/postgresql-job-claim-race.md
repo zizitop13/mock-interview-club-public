@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-job-claim-race
-status: published 
+status: draft
 ---
 
 ## Question
