@@ -53,8 +53,4 @@ d. The linked queue blocks when empty, while the array queue immediately returns
 
 The unbounded linked queue absorbs background bursts, while the bounded array queue limits pending requests and provides predictable memory use.
 
-LinkedBlockingQueue is unbounded by default, allowing background tasks to accumulate during traffic spikes. Sustained overload can eventually exhaust memory.
-
-ArrayBlockingQueue has a fixed capacity of 100 tasks. Once full, the executor can grow from 4 to 16 threads. If all threads are busy and the queue remains full, new tasks are rejected, providing backpressure and predictable memory use.
-
 </details>

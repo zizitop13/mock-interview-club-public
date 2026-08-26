@@ -8,6 +8,8 @@ const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 const ANSWER_PATTERN = /^([a-z])\.\s+(.+?)\s*$/;
 const CORRECT_ANSWER_PATTERN = /<!--\s*correct-answer:\s*([a-z])\s*-->/g;
 const DETAILS_PATTERN = /^<details>\s*\n<summary>Answer explanation<\/summary>\s*\n([\s\S]*?)\n<\/details>\s*$/;
+const EXPLANATION_PATTERN = /^#\s+[^\n]+\n+## Correct answer\s*\n([\s\S]*?)\n## Detailed explanation\s*\n([\s\S]*?)\n## Code example\s*\n([\s\S]*?)\n## Why the other options are incorrect\s*\n([\s\S]*?)\s*$/;
+const EXPLANATION_CODE_PATTERN = /```(?!plantuml\b|puml\b)[a-zA-Z0-9_-]+\s*\n[\s\S]*?\n```/i;
 const PLANTUML_PATTERN = /```(?:plantuml|puml)\s*\n([\s\S]*?)\n```/gi;
 const PLANTUML_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
 const PLANTUML_SERVER_URL = 'https://www.plantuml.com/plantuml/png';
@@ -228,6 +230,69 @@ export function parseQuiz(source, filePath) {
   };
 }
 
+export function parseQuizExplanation(source, quiz, filePath) {
+  const expectedPath = quiz.filePath.replace(/\.md$/, '-explain.md');
+
+  if (filePath !== expectedPath) {
+    fail(filePath, `explanation path must match ${expectedPath}`);
+  }
+
+  const sections = source.trim().match(EXPLANATION_PATTERN);
+
+  if (!sections) {
+    fail(filePath, 'expected a title followed by correct answer, detailed explanation, code example, and incorrect options sections');
+  }
+
+  const correctAnswer = sections[1].trim();
+  const expectedAnswer = `${quiz.correctAnswer}. ${quiz.answers[quiz.correctOptionIndex].text}`;
+
+  if (correctAnswer !== expectedAnswer) {
+    fail(filePath, `correct answer must match the quiz: ${expectedAnswer}`);
+  }
+
+  const detailedExplanation = sections[2].trim();
+  const codeExample = sections[3].trim();
+  const incorrectOptions = sections[4].trim();
+
+  if (!detailedExplanation) {
+    fail(filePath, 'detailed explanation must not be empty');
+  }
+
+  if (!EXPLANATION_CODE_PATTERN.test(codeExample)) {
+    fail(filePath, 'code example must include a fenced code block with a language');
+  }
+
+  const explainedOptions = incorrectOptions
+    .split(/\r?\n/)
+    .filter((line) => line.trim())
+    .map((line) => {
+      const option = line.match(/^-\s+([a-z])\.\s+(.+)$/);
+
+      if (!option) {
+        fail(filePath, 'incorrect options must use one bullet per option: - a. Explanation');
+      }
+
+      return option[1];
+    });
+  const expectedOptions = quiz.answers
+    .filter((answer) => answer.letter !== quiz.correctAnswer)
+    .map((answer) => answer.letter);
+
+  if (explainedOptions.join(',') !== expectedOptions.join(',')) {
+    fail(filePath, `incorrect options must explain ${expectedOptions.join(', ')} in order`);
+  }
+
+  extractPlantUml(source, filePath);
+
+  return {
+    filePath,
+    correctAnswer,
+    detailedExplanation,
+    codeExample,
+    incorrectOptions,
+  };
+}
+
 export function markPublished(source, filePath) {
   const { metadata } = parseFrontmatter(source, filePath);
 
@@ -305,15 +370,38 @@ export async function loadQuizzes(rootDirectory = process.cwd()) {
 
     const entries = await readdir(path.join(quizzesDirectory, topic.name), { withFileTypes: true });
 
-    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    const sortedEntries = entries.sort((left, right) => left.name.localeCompare(right.name));
+    const filenames = new Set(sortedEntries.map((entry) => entry.name));
+
+    for (const entry of sortedEntries) {
       const relativePath = `quizzes/${topic.name}/${entry.name}`;
 
       if (!entry.isFile() || !entry.name.endsWith('.md')) {
         throw new Error(`${relativePath}: expected a Markdown file, not a nested directory`);
       }
 
+      if (entry.name.endsWith('-explain.md')) {
+        const quizFilename = entry.name.replace(/-explain\.md$/, '.md');
+
+        if (!filenames.has(quizFilename)) {
+          throw new Error(`${relativePath}: explanation has no matching quiz ${quizFilename}`);
+        }
+
+        continue;
+      }
+
       const source = await readFile(path.join(rootDirectory, relativePath), 'utf8');
-      quizzes.push(parseQuiz(source, relativePath));
+      const quiz = parseQuiz(source, relativePath);
+      const explanationFilename = entry.name.replace(/\.md$/, '-explain.md');
+      const explanationPath = `quizzes/${topic.name}/${explanationFilename}`;
+
+      if (!filenames.has(explanationFilename)) {
+        fail(relativePath, `missing detailed explanation ${explanationFilename}`);
+      }
+
+      const explanationSource = await readFile(path.join(rootDirectory, explanationPath), 'utf8');
+      const detailedExplanation = parseQuizExplanation(explanationSource, quiz, explanationPath);
+      quizzes.push({ ...quiz, explanationFilePath: explanationPath, detailedExplanation });
     }
   }
 

@@ -41,12 +41,4 @@ d. Releasing the read lock before returning causes data corruption.
 
 Another writer can modify or remove the entry after the write lock is released but before the read lock is acquired.
 
-Downgrade safely by acquiring the read lock while still holding the write lock, then release the write lock. The read lock keeps other writers out while the cached value is read.
-
-Option a is incorrect because acquiring a read lock after releasing a write lock does not inherently deadlock.
-
-Option b is incorrect because the write lock protects both containsKey() and put().
-
-Option d is incorrect because the return expression is evaluated before the finally block releases the read lock.
-
 </details>

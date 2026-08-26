@@ -9,6 +9,8 @@ import { publishQuizzes } from '../scripts/publish-quizzes.js';
 const fixturePath = 'quizzes/java/read-write-lock-downgrade.md';
 const fixture = (await readFile(new URL(`../${fixturePath}`, import.meta.url), 'utf8'))
   .replace(/^status: published$/m, 'status: draft');
+const explanationPath = fixturePath.replace(/\.md$/, '-explain.md');
+const explanationFixture = await readFile(new URL(`../${explanationPath}`, import.meta.url), 'utf8');
 const illustratedFixture = fixture.replace(
   '\n\n## Answers',
   '\n\n```plantuml\n@startuml\nAlice -> Bob: hello\n@enduml\n```\n\n## Answers',
@@ -18,6 +20,7 @@ async function createFixtureDirectory(source = fixture) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'publish-quiz-'));
   await mkdir(path.join(root, 'quizzes', 'java'), { recursive: true });
   await writeFile(path.join(root, fixturePath), source);
+  await writeFile(path.join(root, explanationPath), explanationFixture);
   return root;
 }
 
@@ -36,7 +39,7 @@ test('pushes the consumed marker before sending context and poll', async () => {
       rootDirectory: root,
       token: 'secret-test-token',
       chatId: '@mockingbird',
-      threadId: '60',
+      threadId: '42',
       logger,
       git(args) {
         events.push(`git:${args[0]}`);
@@ -45,7 +48,7 @@ test('pushes the consumed marker before sending context and poll', async () => {
         const status = await readFile(path.join(root, fixturePath), 'utf8');
         assert.match(status, /^status: published$/m);
         events.push(`telegram:${url.split('/').at(-1)}`);
-        assert.equal(JSON.parse(request.body).message_thread_id, 60);
+        assert.equal(JSON.parse(request.body).message_thread_id, 42);
 
         if (url.endsWith('/sendPoll')) {
           assert.deepEqual(JSON.parse(request.body).correct_option_ids, [2]);
@@ -70,7 +73,7 @@ test('rejects an invalid forum topic before consuming a publication attempt', as
       () => publishQuizzes({
         rootDirectory: root,
         token: 'secret-test-token',
-        chatId: '-1004403419105',
+        chatId: '-1001234567890',
         threadId: 'not-a-topic',
         logger,
       }),
@@ -91,8 +94,8 @@ test('sends a PlantUML image before supporting context and poll', async () => {
     await publishQuizzes({
       rootDirectory: root,
       token: 'secret-test-token',
-      chatId: '-1004403419105',
-      threadId: '60',
+      chatId: '-1001234567890',
+      threadId: '42',
       logger,
       git(args) {
         events.push(`git:${args[0]}`);
@@ -100,7 +103,7 @@ test('sends a PlantUML image before supporting context and poll', async () => {
       async fetchImplementation(url, request) {
         const payload = JSON.parse(request.body);
         events.push(`telegram:${url.split('/').at(-1)}`);
-        assert.equal(payload.message_thread_id, 60);
+        assert.equal(payload.message_thread_id, 42);
 
         if (url.endsWith('/sendPhoto')) {
           assert.match(payload.photo, /^https:\/\/www\.plantuml\.com\/plantuml\/png\//);
