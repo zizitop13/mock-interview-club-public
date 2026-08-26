@@ -19,9 +19,16 @@ function yamlString(value) {
 
 function transformPlantUml(markdown) {
   return markdown.replace(PLANTUML_PATTERN, (_match, source) => {
-    const encoded = encodePlantUml(source.trim());
+    const diagramSource = source.trim();
+    const encoded = encodePlantUml(diagramSource);
     const imageUrl = `https://www.plantuml.com/plantuml/svg/${encoded}`;
-    return `<figure class="diagram"><img src="${imageUrl}" alt="PlantUML diagram" loading="lazy"></figure>`;
+    return [
+      '<figure class="diagram">',
+      '  <button class="copy-button diagram-copy" type="button" data-copy-diagram>Copy PlantUML</button>',
+      `  <img src="${imageUrl}" alt="PlantUML diagram" loading="lazy">`,
+      `  <template class="diagram-source">${escapeHtml(diagramSource)}</template>`,
+      '</figure>',
+    ].join('\n');
   });
 }
 
@@ -41,19 +48,21 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
-function formatQuizAnswers(markdown, answers) {
+function formatQuizAnswers(markdown, answers, explanationUrl) {
   const answerRows = answers
     .map(({ letter, text }) => [
-      '<label class="quiz-answer">',
-      '  <input type="checkbox">',
-      `  <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`,
-      '</label>',
+      '<div class="quiz-answer-row">',
+      '  <label class="quiz-answer">',
+      '    <input type="checkbox" data-quiz-answer>',
+      `    <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`,
+      '  </label>',
+      '</div>',
     ].join('\n'))
     .join('\n');
 
   return markdown.replace(
     /## Answers\s*\n[\s\S]*?(?=<!--\s*correct-answer:)/,
-    `## Answers\n\n<div class="quiz-answers">\n${answerRows}\n</div>\n\n`,
+    `## Answers\n\n<div class="quiz-answers">\n${answerRows}\n</div>\n<a class="answer-explanation-link" href="{{ '${explanationUrl}' | relative_url }}" data-answer-explanation hidden>Read the detailed explanation →</a>\n\n`,
   );
 }
 
@@ -105,7 +114,7 @@ export async function buildSite({
     await mkdir(destinationDirectory, { recursive: true });
     await writeFile(
       path.join(destinationDirectory, `${quiz.slug}.md`),
-      `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers))}\n`,
+      `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, explanationUrl))}\n`,
     );
     await writeFile(
       path.join(destinationDirectory, `${quiz.slug}-explain.md`),

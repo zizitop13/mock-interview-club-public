@@ -22,3 +22,48 @@ search?.addEventListener('input', () => {
     topic.hidden = !topic.querySelector('[data-nav-item]:not([hidden])');
   }
 });
+
+for (const answers of document.querySelectorAll('.quiz-answers')) {
+  answers.addEventListener('change', (event) => {
+    if (!event.target.matches('[data-quiz-answer]')) return;
+
+    for (const checkbox of answers.querySelectorAll('[data-quiz-answer]')) {
+      if (checkbox !== event.target) checkbox.checked = false;
+    }
+
+    const explanation = answers.parentElement.querySelector('[data-answer-explanation]');
+    if (explanation) explanation.hidden = !event.target.checked;
+  });
+}
+
+for (const pre of document.querySelectorAll('.content pre')) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'copyable-code';
+  pre.parentNode.insertBefore(wrapper, pre);
+  wrapper.append(pre);
+
+  const button = document.createElement('button');
+  button.className = 'copy-button';
+  button.type = 'button';
+  button.textContent = 'Copy code';
+  button.addEventListener('click', () => copyText(pre.innerText, button));
+  wrapper.append(button);
+}
+
+for (const button of document.querySelectorAll('[data-copy-diagram]')) {
+  button.addEventListener('click', () => {
+    const source = button.parentElement.querySelector('.diagram-source')?.content.textContent ?? '';
+    copyText(source.trim(), button);
+  });
+}
+
+async function copyText(value, button) {
+  try {
+    await navigator.clipboard.writeText(value);
+    const original = button.textContent;
+    button.textContent = 'Copied!';
+    setTimeout(() => { button.textContent = original; }, 1400);
+  } catch {
+    button.textContent = 'Copy failed';
+  }
+}

@@ -234,9 +234,12 @@ a:hover {
 }
 
 .quiz-answers {
-  display: grid;
-  gap: 10px;
   margin: 20px 0 28px;
+}
+
+.quiz-answer-row {
+  display: block;
+  margin-bottom: 10px;
 }
 
 .quiz-answer {
@@ -261,6 +264,53 @@ a:hover {
   margin: 3px 0 0;
   accent-color: var(--accent);
   flex: 0 0 auto;
+}
+
+.answer-explanation-link {
+  display: inline-block;
+  margin: -8px 0 26px;
+  color: var(--accent);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.content pre,
+.diagram {
+  position: relative;
+}
+
+.copyable-code {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 2;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  background: rgba(17, 25, 37, 0.94);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.copy-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.copyable-code pre {
+  padding-top: 48px;
+}
+
+.diagram-copy {
+  color: #273549;
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .diagram {
