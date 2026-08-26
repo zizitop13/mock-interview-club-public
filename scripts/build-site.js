@@ -63,7 +63,7 @@ function formatQuizAnswers(markdown, answers, explanationUrl) {
   return markdown.replace(
     /## Answers\s*\n[\s\S]*?(?=<!--\s*correct-answer:)/,
     `## Answers\n\n<div class="quiz-answers">\n${answerRows}\n</div>\n<a class="answer-explanation-link" href="{{ '${explanationUrl}' | relative_url }}" data-answer-explanation hidden>Read the detailed explanation →</a>\n\n`,
-  );
+  ).replace('<details>', '<details data-answer-details hidden>');
 }
 
 function pageFrontmatter({ title, topic, kind, url, pairedUrl }) {

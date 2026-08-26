@@ -33,6 +33,7 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
     assert.equal((quiz.match(/<div class="quiz-answer-row">/g) ?? []).length, 4);
     assert.match(quiz, /<label class="quiz-answer">[\s\S]*?<strong>a\.<\/strong>/);
     assert.match(quiz, /data-answer-explanation hidden/);
+    assert.match(quiz, /<details data-answer-details hidden>/);
     assert.doesNotMatch(quiz, /^a\. /m);
     assert.match(explanation, /data-copy-diagram/);
     assert.match(explanation, /<template class="diagram-source">@startuml/);

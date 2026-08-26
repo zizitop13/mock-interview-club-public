@@ -33,6 +33,12 @@ for (const answers of document.querySelectorAll('.quiz-answers')) {
 
     const explanation = answers.parentElement.querySelector('[data-answer-explanation]');
     if (explanation) explanation.hidden = !event.target.checked;
+
+    const details = answers.parentElement.querySelector('[data-answer-details]');
+    if (details) {
+      details.hidden = !event.target.checked;
+      if (!event.target.checked) details.open = false;
+    }
   });
 }
 
