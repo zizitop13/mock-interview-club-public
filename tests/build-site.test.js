@@ -45,6 +45,7 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
     assert.doesNotMatch(quiz, /^a\. /m);
     assert.match(explanation, /data-copy-diagram/);
     assert.match(explanation, /<template class="diagram-source">@startuml/);
+    assert.match(explanation, /<img[^>]+>[\s\S]*?<button[^>]+data-copy-diagram>/);
   } finally {
     await rm(outputDirectory, { recursive: true, force: true });
   }

@@ -351,6 +351,9 @@ a:hover {
 }
 
 .diagram-copy {
+  position: static;
+  display: block;
+  margin: 16px auto 0;
   color: #273549;
   background: rgba(255, 255, 255, 0.94);
 }

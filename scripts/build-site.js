@@ -24,8 +24,8 @@ function transformPlantUml(markdown) {
     const imageUrl = `https://www.plantuml.com/plantuml/svg/${encoded}`;
     return [
       '<figure class="diagram">',
-      '  <button class="copy-button diagram-copy" type="button" data-copy-diagram>Copy PlantUML</button>',
       `  <img src="${imageUrl}" alt="PlantUML diagram" loading="lazy">`,
+      '  <button class="copy-button diagram-copy" type="button" data-copy-diagram>Copy PlantUML</button>',
       `  <template class="diagram-source">${escapeHtml(diagramSource)}</template>`,
       '</figure>',
     ].join('\n');
