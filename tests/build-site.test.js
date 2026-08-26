@@ -18,6 +18,10 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
       path.join(outputDirectory, 'quizzes', 'kafka', 'partition-count-key-ordering-explain.md'),
       'utf8',
     );
+    const quiz = await readFile(
+      path.join(outputDirectory, 'quizzes', 'java', 'read-write-lock-downgrade.md'),
+      'utf8',
+    );
 
     assert.equal(result.quizzes, 3);
     assert.equal(result.topics, 2);
@@ -25,6 +29,9 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
     assert.match(explanation, /https:\/\/www\.plantuml\.com\/plantuml\/svg\//);
     assert.doesNotMatch(explanation, /```plantuml/);
+    assert.equal((quiz.match(/<input type="checkbox">/g) ?? []).length, 4);
+    assert.match(quiz, /<label class="quiz-answer">[\s\S]*?<strong>a\.<\/strong>/);
+    assert.doesNotMatch(quiz, /^a\. /m);
   } finally {
     await rm(outputDirectory, { recursive: true, force: true });
   }

@@ -233,6 +233,36 @@ a:hover {
   font-weight: 750;
 }
 
+.quiz-answers {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 28px;
+}
+
+.quiz-answer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.quiz-answer:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.quiz-answer input {
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
 .diagram {
   overflow-x: auto;
   margin: 28px 0;

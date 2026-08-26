@@ -33,6 +33,30 @@ function removeFirstHeading(markdown) {
   return markdown.replace(/^#\s+[^\n]+\r?\n+/, '').trim();
 }
 
+function escapeHtml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function formatQuizAnswers(markdown, answers) {
+  const answerRows = answers
+    .map(({ letter, text }) => [
+      '<label class="quiz-answer">',
+      '  <input type="checkbox">',
+      `  <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`,
+      '</label>',
+    ].join('\n'))
+    .join('\n');
+
+  return markdown.replace(
+    /## Answers\s*\n[\s\S]*?(?=<!--\s*correct-answer:)/,
+    `## Answers\n\n<div class="quiz-answers">\n${answerRows}\n</div>\n\n`,
+  );
+}
+
 function pageFrontmatter({ title, topic, kind, url, pairedUrl }) {
   return [
     '---',
@@ -81,7 +105,7 @@ export async function buildSite({
     await mkdir(destinationDirectory, { recursive: true });
     await writeFile(
       path.join(destinationDirectory, `${quiz.slug}.md`),
-      `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(removeFrontmatter(quizSource))}\n`,
+      `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers))}\n`,
     );
     await writeFile(
       path.join(destinationDirectory, `${quiz.slug}-explain.md`),
