@@ -162,6 +162,8 @@ export async function buildSite({
     'kind: "Home"',
     '---',
     '',
+    '**New quizzes are published daily.**',
+    '',
     'Practice with short interview questions, then open the detailed explanation for the mechanics, tradeoffs, code, and diagrams.',
     '',
     ...indexSections,
