@@ -54,6 +54,6 @@ The `Publish Telegram quizzes` workflow runs when quiz files change on `main`, a
 
 Before contacting Telegram, the workflow changes `status: draft` to `status: published`, commits that change, and successfully pushes it to `main`. Only then does it send the Telegram message and quiz. A consumed quiz is never sent again, even when its Markdown file changes.
 
-This intentionally favors **at-most-once** over guaranteed delivery: if Telegram rejects the request after the marker has been pushed, the quiz remains `published` and will not be retried automatically. Check the failed workflow logs, then create a new quiz with a new ID if another publication attempt is required.
+This intentionally favors **at-most-once** over guaranteed delivery: if Telegram rejects the request after the marker has been pushed, the quiz remains `published` and will not be retried automatically. Check the failed workflow logs, then change the status to `draft` if another publication attempt is required.
 
 GitHub Actions needs `contents: write` permission to commit publication markers. Workflow-created commits use `GITHUB_TOKEN` and therefore do not recursively trigger another publication workflow.
