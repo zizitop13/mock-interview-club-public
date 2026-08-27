@@ -364,6 +364,7 @@ export function createPollPayload(quiz, chatId, messageThreadId, explanationUrl)
     allows_multiple_answers: false,
     allows_revoting: false,
     shuffle_options: false,
+    open_period: 86_400,
     correct_option_ids: [quiz.correctOptionIndex],
     explanation: createTelegramExplanation(quiz.telegramExplanation, explanationUrl),
   };

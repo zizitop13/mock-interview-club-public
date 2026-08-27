@@ -127,6 +127,7 @@ test('creates an anonymous, ordered, non-revotable Telegram quiz payload', () =>
   assert.equal(payload.allows_multiple_answers, false);
   assert.equal(payload.allows_revoting, false);
   assert.equal(payload.shuffle_options, false);
+  assert.equal(payload.open_period, 86_400);
   assert.deepEqual(payload.options, quiz.answers.map(({ text }) => ({ text })));
   assert.equal(Object.hasOwn(payload, 'message_thread_id'), false);
 });
