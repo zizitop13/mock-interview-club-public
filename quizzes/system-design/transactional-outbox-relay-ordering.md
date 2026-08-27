@@ -1,6 +1,6 @@
 ---
 id: system-design-transactional-outbox-relay-ordering
-status: draft
+status: published
 ---
 
 ## Question
