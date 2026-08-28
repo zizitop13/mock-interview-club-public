@@ -50,16 +50,71 @@ The tombstone must live long enough to cover the maximum realistic in-flight rea
 
 ## Code example
 
+The application code is Java. The writer records the committed database version while invalidating
+the payload, and the reader asks Redis to cache a database result only if its version is still current.
+
+```java
+final class ProfileService {
+    private final ProfileRepository repository;
+    private final VersionedProfileCache cache;
+
+    Profile get(long profileId) {
+        return cache.get(profileId).orElseGet(() -> loadCurrent(profileId));
+    }
+
+    private Profile loadCurrent(long profileId) {
+        for (int attempt = 0; attempt < 2; attempt++) {
+            VersionedProfile loaded = repository.findVersioned(profileId);
+
+            // Runs the Lua compare-and-set script shown below.
+            if (cache.storeIfCurrent(profileId, loaded, Duration.ofMinutes(5))) {
+                return loaded.profile();
+            }
+
+            // A newer version tombstone rejected this result; reload from the database.
+        }
+
+        return repository.findVersioned(profileId).profile();
+    }
+
+    void update(long profileId, ProfileChange change) {
+        VersionedProfile committed =
+            repository.updateAndIncrementVersion(profileId, change);
+
+        // Atomically deletes the payload and records committed.version() as the tombstone.
+        cache.invalidateAndRecordVersion(profileId, committed.version());
+    }
+}
+```
+
+The following snippet is **Lua code executed atomically by Redis**. It implements
+`storeIfCurrent(...)` from the Java example.
+
 ```lua
--- KEYS[1] = payload key, KEYS[2] = latest-version key
--- ARGV[1] = candidate version, ARGV[2] = TTL seconds, ARGV[3] = payload
+-- Redis provides the payload key and its separate version/tombstone key in KEYS.
+-- The delayed reader provides the DB version, cache TTL, and serialized payload in ARGV.
+local payload_key = KEYS[1]
+local version_key = KEYS[2]
+local candidate_version = tonumber(ARGV[1])
+local ttl_seconds = tonumber(ARGV[2])
+local payload = ARGV[3]
+
+-- Read the newest version known to the cache. This key remains present even when
+-- the payload has been deleted, so an old in-flight reader cannot resurrect it.
 local latest = redis.call('GET', KEYS[2])
-if latest and tonumber(latest) > tonumber(ARGV[1]) then
+
+-- A greater version means a writer committed after this reader loaded its value.
+-- Reject the stale write without changing either Redis key.
+if latest and tonumber(latest) > candidate_version then
   return 0
 end
 
-redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[2])
-redis.call('SET', KEYS[2], ARGV[1], 'EX', ARGV[2])
+-- The candidate is current. Store both payload and version in this same atomic
+-- script, so another client cannot interleave a newer version between the writes.
+redis.call('SET', payload_key, payload, 'EX', ttl_seconds)
+redis.call('SET', version_key, candidate_version, 'EX', ttl_seconds)
+
+-- Return 1 to tell Java that the payload was accepted and may be returned.
 return 1
 ```
 
