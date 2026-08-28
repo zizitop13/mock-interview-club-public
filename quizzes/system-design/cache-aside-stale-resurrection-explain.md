@@ -26,6 +26,21 @@ Writer -> Cache: DEL profile:42
 Cache --> Writer: deleted
 Reader -> Cache: SETEX profile:42, version=7
 note over Cache: stale value resurrected\nafter invalidation
+
+== Correct solution: version tombstone and CAS ==
+
+Reader -> Cache: GET profile:42
+Cache --> Reader: miss
+Reader -> DB: SELECT profile, version=7
+DB --> Reader: version 7
+Writer -> DB: UPDATE profile, version=8; COMMIT
+Writer -> Cache: atomic DEL payload\n+SET latest-version=8
+Reader -> Cache: CAS payload version=7\nagainst latest-version=8
+Cache --> Reader: rejected as stale
+Reader -> DB: reload current version
+DB --> Reader: version 8
+Reader -> Cache: CAS payload version=8
+Cache --> Reader: stored
 @enduml
 ```
 
