@@ -1,6 +1,6 @@
 ---
 id: java-stamped-lock-reference-snapshot
-status: draft
+status: published
 ---
 
 ## Question
