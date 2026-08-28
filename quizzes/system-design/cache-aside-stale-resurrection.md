@@ -1,6 +1,6 @@
 ---
 id: system-design-cache-aside-stale-resurrection
-status: draft
+status: published
 ---
 
 ## Question
