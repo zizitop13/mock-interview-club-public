@@ -37,7 +37,7 @@ flowchart LR
 
 ### Hint
 
-<details>
+<details markdown="1">
 <summary>Show a suggested starting interface</summary>
 
 ```java
@@ -87,14 +87,15 @@ flowchart TB
 
 ### Hint
 
-<details>
-<summary>Think about it...</summary>
+<details markdown="1">
+<summary>Show a possible direction</summary>
 
-- Can purchased capacity be represented structurally instead of maintained as a counter?
-- What must be locked, constrained, conditionally updated, or executed atomically when the last license is contested?
-- How can a session identity distinguish a delayed heartbeat or release from the current owner?
-- Can allocation itself recognize expired sessions so correctness does not depend on background cleanup?
-- Which single source of time can every service instance trust for expiry decisions?
+- **Storage:** PostgreSQL is a reasonable choice because transactions and row locks make the capacity rule easier to enforce.
+- **Capacity:** You could create exactly `N` seat rows for a license pool. An occupied row represents an active session, so the database cannot hold more than `N` sessions.
+- **Acquire:** Handle the complete decision in one transaction. First check whether the user already has a session; otherwise lock one available seat and assign it. Avoid a separate count followed by an insert.
+- **Session identity:** Give every allocation its own `leaseId`. Heartbeat and release should include it, so an old client cannot change a newer session for the same user.
+- **Expiry:** An acquire operation can treat an expired seat as available. A background cleanup process may remove old data, but correctness should not depend on it.
+- **Time:** Use database time for expiry checks so all service instances make the same decision.
 
 </details>
 
