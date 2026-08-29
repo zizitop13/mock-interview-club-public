@@ -17,12 +17,12 @@ While the software is running, the client periodically sends a heartbeat. A hear
 For this stage, a single Java process owns all state in memory.
 
 ```mermaid
-flowchart TB
-    Client["IDE clients"] -->|"obtain, heartbeat, release"| Server["Floating license server"]
-    Server -->|"grants at most N active sessions"| Pool["Customer license pool: N licenses"]
-    Heartbeat["Heartbeat or timeout"] -->|"keeps or expires a session"| Server
-    Server -->|"release or expiry returns capacity"| Pool
+flowchart LR
+    Client["IDE client"] -->|"requests a license"| Server["License server"]
+    Server -->|"acquires"| Session["Active license session"]
 ```
+
+> **A familiar example:** You have probably seen this while using IntelliJ IDEA at work: before the IDE starts, it obtains a floating license from your company's license server.
 
 ### Questions and requirements
 
@@ -31,7 +31,7 @@ flowchart TB
 - Make obtaining a license idempotent: a user who already owns an active license succeeds without consuming another one.
 - Renew only an existing, non-expired session.
 - Release an active session once; repeated release must not increase capacity again.
-- Reclaim expired sessions safely when new requests arrive.
+- Decide when an expired session stops consuming capacity and becomes available again.
 - Keep the timeout configurable and make time-dependent behavior testable without real sleeps.
 - Add tests for normal behavior, expiry, idempotency, and concurrent attempts to obtain the last license.
 
