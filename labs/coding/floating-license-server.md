@@ -19,10 +19,15 @@ For this stage, a single Java process owns all state in memory.
 ```mermaid
 flowchart LR
     Client["IDE client"] -->|"requests a license"| Server["License server"]
-    Server -->|"acquires"| Session["Active license session"]
+    Server -->|"license available"| Session["Active session"]
+    Server -->|"no licenses available"| Rejected["Request rejected"]
+    Session -->|"no heartbeat before timeout"| Expired["Session expires"]
+    Expired -->|"license becomes available"| Server
 ```
 
-> **A familiar example:** You have probably seen this while using IntelliJ IDEA at work: before the IDE starts, it obtains a floating license from your company's license server.
+> 💡 **A familiar example**
+>
+> You have probably seen this while using IntelliJ IDEA at work: before the IDE starts, it obtains a floating license from your company's license server.
 
 ### Questions and requirements
 
