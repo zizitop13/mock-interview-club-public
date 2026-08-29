@@ -449,6 +449,10 @@ a:hover {
 }
 
 @media (max-width: 860px) {
+  .stage-navigation {
+    top: 72px;
+  }
+
   .menu-button {
     position: fixed;
     top: 14px;
