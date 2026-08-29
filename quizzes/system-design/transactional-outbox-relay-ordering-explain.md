@@ -12,23 +12,21 @@ The safer failure order is publish first, then mark the row as published. If a r
 
 `SKIP LOCKED` adds a separate ordering problem. Relay A can lock sequence 10 for an order and pause. Relay B skips that locked row, claims sequence 11 for the same order, and publishes it first. Although both records use `order_id` as the Kafka key and reach the same partition, Kafka preserves the order in which the broker appends them; it cannot reconstruct the intended database sequence across independent producers.
 
-```plantuml
-@startuml
-participant "Relay A" as A
-database PostgreSQL as DB
-participant "Relay B" as B
-queue "Kafka partition" as K
-participant Consumer as C
-
-A -> DB: lock order-42, seq=10
-B -> DB: skip seq=10; lock seq=11
-B -> K: publish seq=11
-K -> C: seq=11 (gap detected)
-A -> K: publish seq=10
-A -> DB: crash before published_at
-A -> K: retry seq=10 (duplicate)
-K -> C: seq=10 twice
-@enduml
+```mermaid
+sequenceDiagram
+    participant A as Relay A
+    participant DB as PostgreSQL
+    participant B as Relay B
+    participant K as Kafka partition
+    participant C as Consumer
+    A->>DB: lock order-42, seq=10
+    B->>DB: skip seq=10, lock seq=11
+    B->>K: publish seq=11
+    K->>C: seq=11 (gap detected)
+    A->>K: publish seq=10
+    A->>DB: crash before published_at
+    A->>K: retry seq=10 (duplicate)
+    K->>C: seq=10 twice
 ```
 
 The consumer therefore keeps the last accepted sequence per aggregate and a deduplication record keyed by `event_id`. On a duplicate it safely acknowledges without applying the effect twice. On a gap it can buffer briefly, retry later, or route the aggregate for reconciliation. The exact policy depends on whether later events can be applied independently and how long missing events may legitimately be delayed.

@@ -8,7 +8,7 @@ import { buildSite } from '../scripts/build-site.js';
 
 const rootDirectory = path.resolve(new URL('..', import.meta.url).pathname);
 
-test('generates topic navigation, stable pages, and rendered PlantUML diagrams', async () => {
+test('generates topic navigation, stable pages, and rendered Mermaid diagrams', async () => {
   const outputDirectory = await mkdtemp(path.join(os.tmpdir(), 'quiz-site-'));
 
   try {
@@ -44,13 +44,13 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
     assert.match(codingLab, /permalink: "\/labs\/coding\/template-lab\/"/);
     assert.match(codingLab, /class="stage-navigation"/);
     assert.match(codingLab, /href="#stage-2-implement"/);
-    assert.match(designLab, /https:\/\/www\.plantuml\.com\/plantuml\/svg\//);
+    assert.match(designLab, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.match(designLab, /data-copy-diagram/);
     const topicTitles = navigation.topics.map(({ title }) => title);
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
-    assert.match(explanation, /https:\/\/www\.plantuml\.com\/plantuml\/svg\//);
-    assert.doesNotMatch(explanation, /```plantuml/);
+    assert.match(explanation, /https:\/\/mermaid\.ink\/svg\/pako:/);
+    assert.doesNotMatch(explanation, /```mermaid/);
     assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer>/g) ?? []).length, 4);
     assert.equal((quiz.match(/<div class="quiz-answer-row" data-correct="(?:true|false)">/g) ?? []).length, 4);
     assert.match(quiz, /<label class="quiz-answer">[\s\S]*?<strong>a\.<\/strong>/);
@@ -62,7 +62,7 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
     assert.doesNotMatch(quiz, /<details>/);
     assert.doesNotMatch(quiz, /^a\. /m);
     assert.match(explanation, /data-copy-diagram/);
-    assert.match(explanation, /<template class="diagram-source">@startuml/);
+    assert.match(explanation, /<template class="diagram-source">sequenceDiagram/);
     assert.match(explanation, /<img[^>]+>[\s\S]*?<button[^>]+data-copy-diagram>/);
   } finally {
     await rm(outputDirectory, { recursive: true, force: true });

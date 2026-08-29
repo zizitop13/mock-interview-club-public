@@ -12,28 +12,25 @@ The exceptionally(...) stage can therefore produce Quote.unavailable() after abo
 
 Executors.newFixedThreadPool(20) also uses an unbounded LinkedBlockingQueue. That avoids immediate rejection, but it permits a backlog during overload. Futures that time out before their queued suppliers start may later become no-ops when dequeued, yet they still consume queue memory and scheduling work until the executor reaches them.
 
-```plantuml
-@startuml
-participant Client
-participant API
-participant "Timeout scheduler" as Timer
-participant "I/O pool worker" as Worker
-participant "Pricing service" as Pricing
-
-Client -> API: quote request
-API -> Worker: supplyAsync(fetch)
-Worker -> Pricing: blocking fetch
-API -> Timer: orTimeout(200 ms)
-Timer -> API: complete future exceptionally
-API --> Client: fallback after 200 ms
-note over Worker,Pricing: fetch is still blocked;\nworker is not released
-
-loop repeated slow requests
-  Client -> API: another request
-  API -> Worker: submit or queue
-end
-note over Worker: all 20 workers can remain occupied
-@enduml
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Timer as Timeout scheduler
+    participant Worker as I/O pool worker
+    participant Pricing as Pricing service
+    Client->>API: quote request
+    API->>Worker: supplyAsync(fetch)
+    Worker->>Pricing: blocking fetch
+    API->>Timer: orTimeout(200 ms)
+    Timer->>API: complete future exceptionally
+    API-->>Client: fallback after 200 ms
+    Note over Worker,Pricing: fetch is still blocked, worker is not released
+    loop repeated slow requests
+        Client->>API: another request
+        API->>Worker: submit or queue
+    end
+    Note over Worker: all 20 workers can remain occupied
 ```
 
 The primary timeout must be applied where blocking occurs: configure connection, request, and read deadlines in the downstream client so fetch actually returns. A bounded executor queue and explicit rejection policy add bulkhead isolation and backpressure. The CompletableFuture timeout can remain as an outer end-to-end deadline, but it is not a substitute for cancelling or bounding the underlying operation.

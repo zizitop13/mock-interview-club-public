@@ -2,9 +2,9 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { encodePlantUml, loadQuizzes } from './quiz.js';
+import { encodeMermaid, loadQuizzes } from './quiz.js';
 
-const PLANTUML_PATTERN = /```(?:plantuml|puml)\s*\n([\s\S]*?)\n```/gi;
+const MERMAID_PATTERN = /```mermaid\s*\n([\s\S]*?)\n```/gi;
 
 function titleFromSlug(slug) {
   return slug.split('-').map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`).join(' ');
@@ -16,11 +16,11 @@ function escapeHtml(value) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-function transformPlantUml(markdown) {
-  return markdown.replace(PLANTUML_PATTERN, (_match, source) => {
+function transformMermaid(markdown) {
+  return markdown.replace(MERMAID_PATTERN, (_match, source) => {
     const diagramSource = source.trim();
-    const imageUrl = `https://www.plantuml.com/plantuml/svg/${encodePlantUml(diagramSource)}`;
-    return ['<figure class="diagram">', `  <img src="${imageUrl}" alt="PlantUML diagram" loading="lazy">`, '  <button class="copy-button diagram-copy" type="button" data-copy-diagram>Copy PlantUML</button>', `  <template class="diagram-source">${escapeHtml(diagramSource)}</template>`, '</figure>'].join('\n');
+    const imageUrl = `https://mermaid.ink/svg/${encodeMermaid(diagramSource)}?bgColor=F7F8FA`;
+    return ['<figure class="diagram">', `  <img src="${imageUrl}" alt="Mermaid diagram" loading="lazy">`, '  <button class="copy-button diagram-copy" type="button" data-copy-diagram>Copy Mermaid</button>', `  <template class="diagram-source">${escapeHtml(diagramSource)}</template>`, '</figure>'].join('\n');
   });
 }
 
@@ -86,8 +86,8 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     ]);
     const destination = path.join(outputDirectory, 'quizzes', quiz.topic);
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformPlantUml(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl))}\n`);
-    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformPlantUml(removeFirstHeading(explanationSource))}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl))}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n`);
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
     topics.get(quiz.topic).quizzes.push({ title: quizTitle, quiz_url: quizUrl, explanation_url: explanationUrl });
   }
@@ -98,7 +98,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     const source = await readFile(path.join(rootDirectory, lab.filePath), 'utf8');
     const destination = path.join(outputDirectory, 'labs', lab.track);
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url })}${transformPlantUml(removeFirstHeading(source))}\n`);
+    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url })}${transformMermaid(removeFirstHeading(source))}\n`);
     if (!labTracks.has(lab.track)) labTracks.set(lab.track, { slug: lab.track, title: trackTitle, labs: [] });
     labTracks.get(lab.track).labs.push({ title: lab.title, url });
   }
@@ -123,4 +123,3 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(`Generated ${result.quizzes} quiz page pair(s) and ${result.labs} lab(s).`);
   } catch (error) { console.error(`Site generation failed: ${error.message}`); process.exitCode = 1; }
 }
-

@@ -23,21 +23,19 @@ Here will be requirements, scale assumptions, and constraints.
 
 ### Proposed architecture
 
-Here will be a PlantUML diagram example:
+Here will be a Mermaid diagram example:
 
-```plantuml
-@startuml
-actor Client
-queue Gateway
-participant Service
-database Database
-
-Client -> Gateway: request
-Gateway -> Service: route
-Service -> Database: read / write
-Database --> Service: result
-Service --> Client: response
-@enduml
+```mermaid
+sequenceDiagram
+    actor Client
+    participant Gateway
+    participant Service
+    participant Database
+    Client->>Gateway: request
+    Gateway->>Service: route
+    Service->>Database: read / write
+    Database-->>Service: result
+    Service-->>Client: response
 ```
 
 ### Configuration or schema

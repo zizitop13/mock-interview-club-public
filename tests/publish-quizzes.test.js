@@ -13,7 +13,7 @@ const explanationPath = fixturePath.replace(/\.md$/, '-explain.md');
 const explanationFixture = await readFile(new URL(`../${explanationPath}`, import.meta.url), 'utf8');
 const illustratedFixture = fixture.replace(
   '\n\n## Answers',
-  '\n\n```plantuml\n@startuml\nAlice -> Bob: hello\n@enduml\n```\n\n## Answers',
+  '\n\n```mermaid\nsequenceDiagram\n    Alice->>Bob: hello\n```\n\n## Answers',
 );
 
 async function createFixtureDirectory(source = fixture) {
@@ -96,7 +96,7 @@ test('rejects an invalid forum topic before consuming a publication attempt', as
   }
 });
 
-test('sends a PlantUML image before supporting context and poll', async () => {
+test('sends a Mermaid image before supporting context and poll', async () => {
   const root = await createFixtureDirectory(illustratedFixture);
   const events = [];
 
@@ -118,7 +118,7 @@ test('sends a PlantUML image before supporting context and poll', async () => {
         assert.equal(payload.message_thread_id, 42);
 
         if (url.endsWith('/sendPhoto')) {
-          assert.match(payload.photo, /^https:\/\/www\.plantuml\.com\/plantuml\/png\//);
+          assert.match(payload.photo, /^https:\/\/mermaid\.ink\/img\/pako:/);
         }
 
         return telegramSuccess(43);

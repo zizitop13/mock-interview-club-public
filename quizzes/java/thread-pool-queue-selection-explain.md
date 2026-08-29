@@ -14,24 +14,15 @@ A no-argument `LinkedBlockingQueue` has an effective capacity of `Integer.MAX_VA
 
 The implementations also have different mechanical tradeoffs. `LinkedBlockingQueue` allocates a node for each enqueued task and uses separate locks for insertion and removal. `ArrayBlockingQueue` allocates its backing array upfront, uses one lock for both operations, and can optionally enforce fair acquisition. The choice should primarily follow workload and overload behavior, then be confirmed with measurements.
 
-```plantuml
-@startuml
-start
-if (Core worker available?) then (yes)
-  :Run task;
-else (no)
-  if (Queue accepts task?) then (yes)
-    :Wait in queue;
-  else (no)
-    if (Below maximum pool size?) then (yes)
-      :Create another worker;
-    else (no)
-      :Reject task;
-    endif
-  endif
-endif
-stop
-@enduml
+```mermaid
+flowchart TD
+    Start([Submit task]) --> Core{Core worker available?}
+    Core -- Yes --> Run[Run task]
+    Core -- No --> Queue{Queue accepts task?}
+    Queue -- Yes --> Wait[Wait in queue]
+    Queue -- No --> Max{Below maximum pool size?}
+    Max -- Yes --> Create[Create another worker]
+    Max -- No --> Reject[Reject task]
 ```
 
 ## Code example

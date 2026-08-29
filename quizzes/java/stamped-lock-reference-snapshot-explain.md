@@ -12,23 +12,21 @@ The broken method reads only the `limits` reference before validation. That refe
 
 The fallback has the same flaw. It acquires a read lock but copies only the reference, releases the lock, and then reads the mutable fields. A writer can therefore update the fields between the two reads. For example, the reader can observe the old `low` and the new `high`, even though that pair was never installed by one call to `update`.
 
-```plantuml
-@startuml
-participant Reader
-participant StampedLock as Lock
-participant Writer
-
-Reader -> Lock: tryOptimisticRead()
-Reader -> Reader: current = limits
-Reader -> Lock: validate(stamp) = true
-Reader -> Reader: read current.low = 10
-Writer -> Lock: acquire write lock
-Writer -> Writer: limits.low = 30
-Writer -> Writer: limits.high = 40
-Writer -> Lock: release write lock
-Reader -> Reader: read current.high = 40
-note over Reader: returns Range(10, 40),\nwhich was never installed
-@enduml
+```mermaid
+sequenceDiagram
+    participant Reader
+    participant Lock as StampedLock
+    participant Writer
+    Reader->>Lock: tryOptimisticRead()
+    Reader->>Reader: current = limits
+    Reader->>Lock: validate(stamp) = true
+    Reader->>Reader: read current.low = 10
+    Writer->>Lock: acquire write lock
+    Writer->>Writer: limits.low = 30
+    Writer->>Writer: limits.high = 40
+    Writer->>Lock: release write lock
+    Reader->>Reader: read current.high = 40
+    Note over Reader: returns Range(10, 40), which was never installed
 ```
 
 The fix is to copy the primitive fields while the optimistic stamp is still being checked. If validation fails, both fields must be copied again while holding the read lock. Returning an immutable object that writers replace atomically can also simplify the design, but its publication guarantees still need to be explicit.

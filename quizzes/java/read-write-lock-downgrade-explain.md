@@ -10,21 +10,19 @@ c. Another writer can modify the cache between lock operations.
 
 The individual cache operations remain synchronized, but the larger operation does not. The method can therefore load one value and return a different value, return `null` after an intervening removal, or observe an invalidated entry.
 
-```plantuml
-@startuml
-participant "Thread A" as A
-participant "Write lock" as W
-participant "Thread B" as B
-
-A -> W: acquire write lock
-A -> A: cache.put(key, loadedValue)
-A -> W: release write lock
-B -> W: acquire write lock
-B -> B: cache.remove(key)
-B -> W: release write lock
-A -> A: acquire read lock
-A -> A: cache.get(key) returns null
-@enduml
+```mermaid
+sequenceDiagram
+    participant A as Thread A
+    participant W as Write lock
+    participant B as Thread B
+    A->>W: acquire write lock
+    A->>A: cache.put(key, loadedValue)
+    A->>W: release write lock
+    B->>W: acquire write lock
+    B->>B: cache.remove(key)
+    B->>W: release write lock
+    A->>A: acquire read lock
+    A->>A: cache.get(key) returns null
 ```
 
 The fix is lock downgrading: acquire the read lock while still holding the write lock, then release the write lock. The current thread now continues under a read lock without leaving any interval in which another writer can intervene. `ReentrantReadWriteLock` supports this direction; upgrading directly from a read lock to a write lock is not generally safe.

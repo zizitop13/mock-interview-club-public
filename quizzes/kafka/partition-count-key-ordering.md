@@ -7,30 +7,24 @@ status: published
 
 What can happen when a Kafka topic grows from 3 to 6 partitions?
 
-```plantuml
-@startuml
-left to right direction
-
-rectangle "Before: 3 partitions" {
-  queue "Partition 0" as old0
-  queue "Partition 1" as old1
-  queue "Partition 2" as old2
-}
-
-rectangle "After: 6 partitions" {
-  queue "Partition 0" as new0
-  queue "Partition 1" as new1
-  queue "Partition 2" as new2
-  queue "Partition 3" as new3
-  queue "Partition 4" as new4
-  queue "Partition 5" as new5
-}
-
-cloud "Key: order-42\nHash: 10" as key
-
-key --> old1 : 10 % 3 = 1
-key --> new4 : 10 % 6 = 4
-@enduml
+```mermaid
+flowchart LR
+    Key["Key: order-42<br/>Hash: 10"]
+    subgraph Before["Before: 3 partitions"]
+        old0["Partition 0"]
+        old1["Partition 1"]
+        old2["Partition 2"]
+    end
+    subgraph After["After: 6 partitions"]
+        new0["Partition 0"]
+        new1["Partition 1"]
+        new2["Partition 2"]
+        new3["Partition 3"]
+        new4["Partition 4"]
+        new5["Partition 5"]
+    end
+    Key -->|"10 % 3 = 1"| old1
+    Key -->|"10 % 6 = 4"| new4
 ```
 
 ## Answers

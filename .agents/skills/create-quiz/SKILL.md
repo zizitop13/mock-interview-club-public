@@ -22,10 +22,9 @@ What is wrong with this code?
 // Optional supporting code. Telegram receives it as a separate message.
 ```
 
-```plantuml
-@startuml
-Alice -> Bob: Optional diagram sent as an image before the code
-@enduml
+```mermaid
+sequenceDiagram
+    Alice->>Bob: Optional diagram sent as an image before the code
 ```
 
 ## Answers
@@ -58,10 +57,9 @@ c. Third plausible answer.
 
 Explain the underlying mechanism, relevant guarantees, failure modes, and practical tradeoffs.
 
-```plantuml
-@startuml
-Alice -> Bob: Optional diagram when it materially clarifies the explanation
-@enduml
+```mermaid
+sequenceDiagram
+    Alice->>Bob: Optional diagram when it materially clarifies the explanation
 ```
 
 ## Code example
@@ -79,7 +77,7 @@ Alice -> Bob: Optional diagram when it materially clarifies the explanation
 
 4. Use a globally unique lowercase kebab-case `id`; prefix it with the topic.
 5. Keep the first question paragraph to 300 characters or fewer. Put code or additional context below that first paragraph; it is sent as a separate Telegram message.
-6. Optionally include one fenced `plantuml` or `puml` block inside `## Question` and at most one in the companion. Start each with `@startuml` and end it with `@enduml`. Question diagrams are sent to the public PlantUML Server for PNG rendering, so do not put secrets or private data in them.
+6. Optionally include one fenced `mermaid` block inside `## Question` and at most one in the companion. Use valid Mermaid syntax such as `flowchart` or `sequenceDiagram`. Question diagrams are rendered through Mermaid Ink and sent as PNG images, so do not put secrets or private data in them.
 7. Provide 2–12 single-line answers, each no longer than 100 characters. Label them consecutively `a.`, `b.`, `c.`, and so on.
 8. Include exactly one `<!-- correct-answer: x -->` comment. Its lowercase letter must match an existing option. HTML comments are hidden in rendered Markdown, but remain visible in source.
 9. Put a meaningful, concise answer explanation inside `<details>`. Its first paragraph becomes Telegram's short explanation; keep that paragraph within 200 characters where practical.

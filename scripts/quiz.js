@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { deflateRawSync } from 'node:zlib';
+import { deflateSync } from 'node:zlib';
 
 const TOPIC_PATTERN = /^[a-z][a-z0-9-]*$/;
 const ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
@@ -9,10 +9,9 @@ const ANSWER_PATTERN = /^([a-z])\.\s+(.+?)\s*$/;
 const CORRECT_ANSWER_PATTERN = /<!--\s*correct-answer:\s*([a-z])\s*-->/g;
 const DETAILS_PATTERN = /^<details>\s*\n<summary>Answer explanation<\/summary>\s*\n([\s\S]*?)\n<\/details>\s*$/;
 const EXPLANATION_PATTERN = /^#\s+[^\n]+\n+## Correct answer\s*\n([\s\S]*?)\n## Detailed explanation\s*\n([\s\S]*?)\n## Code example\s*\n([\s\S]*?)\n## Why the other options are incorrect\s*\n([\s\S]*?)\s*$/;
-const EXPLANATION_CODE_PATTERN = /```(?!plantuml\b|puml\b)[a-zA-Z0-9_-]+\s*\n[\s\S]*?\n```/i;
-const PLANTUML_PATTERN = /```(?:plantuml|puml)\s*\n([\s\S]*?)\n```/gi;
-const PLANTUML_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-const PLANTUML_SERVER_URL = 'https://www.plantuml.com/plantuml/png';
+const EXPLANATION_CODE_PATTERN = /```(?!mermaid\b)[a-zA-Z0-9_-]+\s*\n[\s\S]*?\n```/i;
+const MERMAID_PATTERN = /```mermaid\s*\n([\s\S]*?)\n```/gi;
+const MERMAID_IMAGE_URL = 'https://mermaid.ink/img';
 
 function fail(filePath, message) {
   throw new Error(`${filePath}: ${message}`);
@@ -103,43 +102,21 @@ function shortenTo(value, maximumLength) {
   return `${[...value].slice(0, maximumLength - 3).join('').trimEnd()}...`;
 }
 
-function encodeSixBit(value) {
-  return PLANTUML_ALPHABET[value & 0x3f];
+export function encodeMermaid(source) {
+  const state = JSON.stringify({
+    code: source,
+    mermaid: { theme: 'default' },
+    autoSync: true,
+    updateDiagram: true,
+  });
+  return `pako:${deflateSync(Buffer.from(state, 'utf8'), { level: 9 }).toString('base64url')}`;
 }
 
-function encodeThreeBytes(first, second, third, byteCount) {
-  const encoded = [
-    encodeSixBit(first >> 2),
-    encodeSixBit(((first & 0x03) << 4) | (second >> 4)),
-    encodeSixBit(((second & 0x0f) << 2) | (third >> 6)),
-    encodeSixBit(third),
-  ];
-
-  return encoded.slice(0, byteCount + 1).join('');
-}
-
-export function encodePlantUml(source) {
-  const compressed = deflateRawSync(Buffer.from(source, 'utf8'), { level: 9 });
-  let encoded = '';
-
-  for (let index = 0; index < compressed.length; index += 3) {
-    const byteCount = Math.min(3, compressed.length - index);
-    encoded += encodeThreeBytes(
-      compressed[index],
-      compressed[index + 1] ?? 0,
-      compressed[index + 2] ?? 0,
-      byteCount,
-    );
-  }
-
-  return encoded;
-}
-
-function extractPlantUml(questionBody, filePath) {
-  const diagrams = [...questionBody.matchAll(PLANTUML_PATTERN)];
+function extractMermaid(questionBody, filePath) {
+  const diagrams = [...questionBody.matchAll(MERMAID_PATTERN)];
 
   if (diagrams.length > 1) {
-    fail(filePath, 'expected at most one PlantUML diagram');
+    fail(filePath, 'expected at most one Mermaid diagram');
   }
 
   if (diagrams.length === 0) {
@@ -148,12 +125,12 @@ function extractPlantUml(questionBody, filePath) {
 
   const diagramSource = diagrams[0][1].trim();
 
-  if (!/^@startuml(?:\s|$)/i.test(diagramSource) || !/@enduml\s*$/i.test(diagramSource)) {
-    fail(filePath, 'PlantUML diagram must start with @startuml and end with @enduml');
+  if (!diagramSource) {
+    fail(filePath, 'Mermaid diagram must not be empty');
   }
 
   const contextBody = questionBody
-    .replace(PLANTUML_PATTERN, '')
+    .replace(MERMAID_PATTERN, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
@@ -175,7 +152,7 @@ export function parseQuiz(source, filePath) {
 
   const questionBody = sectionMatch[1].trim();
   const question = firstParagraph(questionBody);
-  const { diagramSource, contextBody } = extractPlantUml(questionBody, filePath);
+  const { diagramSource, contextBody } = extractMermaid(questionBody, filePath);
 
   if (!question || characterCount(question) > 300) {
     fail(filePath, 'the first question paragraph must contain 1–300 characters');
@@ -294,7 +271,7 @@ export function parseQuizExplanation(source, quiz, filePath) {
     fail(filePath, `incorrect options must explain ${expectedOptions.join(', ')} in order`);
   }
 
-  extractPlantUml(source, filePath);
+  extractMermaid(source, filePath);
 
   return {
     filePath,
@@ -405,7 +382,7 @@ export function createDiagramPayload(quiz, chatId, messageThreadId) {
   return {
     chat_id: chatId,
     ...(messageThreadId === undefined ? {} : { message_thread_id: messageThreadId }),
-    photo: `${PLANTUML_SERVER_URL}/${encodePlantUml(quiz.diagramSource)}`,
+    photo: `${MERMAID_IMAGE_URL}/${encodeMermaid(quiz.diagramSource)}?type=png&bgColor=F7F8FA`,
   };
 }
 

@@ -10,20 +10,18 @@ At PostgreSQL's default READ COMMITTED isolation level, each statement sees a sn
 
 The first `UPDATE` obtains the row lock. The second `UPDATE` waits, but waiting does not invalidate the ID it selected earlier. After the first transaction commits, the second update can proceed because its predicate is only `WHERE id = :selected_id`; it overwrites the claim. If both applications execute the job selected before the update, the job runs twice.
 
-```plantuml
-@startuml
-participant "Worker A" as A
-database PostgreSQL as DB
-participant "Worker B" as B
-
-A -> DB: SELECT READY job 42
-DB --> A: 42
-B -> DB: SELECT READY job 42
-DB --> B: 42
-A -> DB: UPDATE 42; COMMIT
-B -> DB: UPDATE 42 waits, then succeeds
-note over A,B: Both applications may execute job 42
-@enduml
+```mermaid
+sequenceDiagram
+    participant A as Worker A
+    participant DB as PostgreSQL
+    participant B as Worker B
+    A->>DB: SELECT READY job 42
+    DB-->>A: 42
+    B->>DB: SELECT READY job 42
+    DB-->>B: 42
+    A->>DB: UPDATE 42, then COMMIT
+    B->>DB: UPDATE 42 waits, then succeeds
+    Note over A,B: Both applications may execute job 42
 ```
 
 Claiming and execution are separate concerns. `FOR UPDATE SKIP LOCKED` lets concurrent workers claim different rows while the claim transaction is open. After committing the claim, perform the slow external work outside the transaction. Production queues also need idempotent handlers and usually a lease or recovery process for workers that crash after claiming.

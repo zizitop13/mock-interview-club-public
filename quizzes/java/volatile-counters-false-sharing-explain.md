@@ -10,19 +10,17 @@ The two counters are logically independent and each has only one writer, so this
 
 Processors move memory through cache lines rather than individual Java fields. If `requests` and `errors` occupy the same cache line, a core must obtain ownership of that line before writing its counter. Its write invalidates the other core's copy. The other core then requests ownership to update the adjacent counter, invalidating the first copy. This cache-coherence ping-pong is false sharing: the threads share a physical cache line without intentionally sharing data.
 
-```plantuml
-@startuml
-participant "Core A" as A
-participant "Cache line\n[requests | errors]" as L
-participant "Core B" as B
-
-loop independent counter updates
-  A -> L: own line; write requests
-  L --> B: invalidate cached line
-  B -> L: own line; write errors
-  L --> A: invalidate cached line
-end
-@enduml
+```mermaid
+sequenceDiagram
+    participant A as Core A
+    participant L as Cache line [requests | errors]
+    participant B as Core B
+    loop independent counter updates
+        A->>L: own line, write requests
+        L-->>B: invalidate cached line
+        B->>L: own line, write errors
+        L-->>A: invalidate cached line
+    end
 ```
 
 `volatile` makes every update visible and constrains reordering, which increases the frequency with which the coherence protocol sees these writes. It does not use one JVM-wide monitor. The precise impact depends on object layout, CPU architecture, JVM options, and workload, so it should be confirmed with a JMH benchmark and hardware performance counters rather than inferred from timing one loop.

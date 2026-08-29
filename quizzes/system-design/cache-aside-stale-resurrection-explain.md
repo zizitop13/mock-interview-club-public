@@ -10,38 +10,34 @@ Cache-aside invalidation after the database commit avoids one common failure: re
 
 The reader can miss Redis and read profile version 7 from the database. Before it refills Redis, the writer commits version 8 and successfully deletes the key. The delayed reader then writes version 7 into the now-empty cache. Every following request can receive the old profile until the TTL expires, even though the invalidation itself succeeded.
 
-```plantuml
-@startuml
-participant Reader
-database PostgreSQL as DB
-participant Writer
-database Redis as Cache
-
-Reader -> Cache: GET profile:42
-Cache --> Reader: miss
-Reader -> DB: SELECT profile, version=7
-DB --> Reader: version 7
-Writer -> DB: UPDATE profile, version=8; COMMIT
-Writer -> Cache: DEL profile:42
-Cache --> Writer: deleted
-Reader -> Cache: SETEX profile:42, version=7
-note over Cache: stale value resurrected\nafter invalidation
-
-== Correct solution: version tombstone and CAS ==
-
-Reader -> Cache: GET profile:42
-Cache --> Reader: miss
-Reader -> DB: SELECT profile, version=7
-DB --> Reader: version 7
-Writer -> DB: UPDATE profile, version=8; COMMIT
-Writer -> Cache: atomic DEL payload\n+SET latest-version=8
-Reader -> Cache: CAS payload version=7\nagainst latest-version=8
-Cache --> Reader: rejected as stale
-Reader -> DB: reload current version
-DB --> Reader: version 8
-Reader -> Cache: CAS payload version=8
-Cache --> Reader: stored
-@enduml
+```mermaid
+sequenceDiagram
+    participant Reader
+    participant DB as PostgreSQL
+    participant Writer
+    participant Cache as Redis
+    Reader->>Cache: GET profile:42
+    Cache-->>Reader: miss
+    Reader->>DB: SELECT profile, version=7
+    DB-->>Reader: version 7
+    Writer->>DB: UPDATE profile, version=8, then COMMIT
+    Writer->>Cache: DEL profile:42
+    Cache-->>Writer: deleted
+    Reader->>Cache: SETEX profile:42, version=7
+    Note over Cache: stale value resurrected after invalidation
+    Note over Reader,Cache: Correct solution: version tombstone and CAS
+    Reader->>Cache: GET profile:42
+    Cache-->>Reader: miss
+    Reader->>DB: SELECT profile, version=7
+    DB-->>Reader: version 7
+    Writer->>DB: UPDATE profile, version=8, then COMMIT
+    Writer->>Cache: atomic DEL payload + SET latest-version=8
+    Reader->>Cache: CAS payload version=7 against latest-version=8
+    Cache-->>Reader: rejected as stale
+    Reader->>DB: reload current version
+    DB-->>Reader: version 8
+    Reader->>Cache: CAS payload version=8
+    Cache-->>Reader: stored
 ```
 
 A robust versioned design keeps the newest known version independently of the cached payload. The writer advances that version, or installs a short-lived tombstone containing version 8, after the database commit. A refill uses an atomic compare-and-set operation: it may store version 7 only if the recorded version is not newer. Redis Lua, a transaction, or a purpose-built conditional command can make the comparison and write one atomic operation.

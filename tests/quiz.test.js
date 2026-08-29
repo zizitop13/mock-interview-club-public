@@ -10,7 +10,7 @@ import {
   createExplanationUrl,
   createPollPayload,
   createTelegramExplanation,
-  encodePlantUml,
+  encodeMermaid,
   loadQuizzes,
   markPublished,
   parseQuiz,
@@ -22,12 +22,11 @@ const fixture = (await readFile(new URL(`../${fixturePath}`, import.meta.url), '
   .replace(/^status: published$/m, 'status: draft');
 const explanationPath = fixturePath.replace(/\.md$/, '-explain.md');
 const explanationFixture = await readFile(new URL(`../${explanationPath}`, import.meta.url), 'utf8');
-const plantUmlBlock = `\n\n\`\`\`plantuml
-@startuml
-Alice -> Bob: hello
-@enduml
+const mermaidBlock = `\n\n\`\`\`mermaid
+sequenceDiagram
+    Alice->>Bob: hello
 \`\`\``;
-const illustratedFixture = fixture.replace('\n\n## Answers', `${plantUmlBlock}\n\n## Answers`);
+const illustratedFixture = fixture.replace('\n\n## Answers', `${mermaidBlock}\n\n## Answers`);
 
 test('parses the strict Markdown quiz and its hidden correct answer', () => {
   const quiz = parseQuiz(fixture, fixturePath);
@@ -176,33 +175,30 @@ test('routes the supporting code message to the same forum topic', () => {
   assert.equal(message.message_thread_id, 42);
 });
 
-test('extracts one PlantUML diagram and removes it from the context message', () => {
+test('extracts one Mermaid diagram and removes it from the context message', () => {
   const quiz = parseQuiz(illustratedFixture, fixturePath);
   const diagram = createDiagramPayload(quiz, '-1001234567890', 42);
   const context = createContextMessage(quiz, '-1001234567890', 42);
 
-  assert.equal(quiz.diagramSource, '@startuml\nAlice -> Bob: hello\n@enduml');
-  assert.match(diagram.photo, /^https:\/\/www\.plantuml\.com\/plantuml\/png\/[0-9A-Za-z_-]+$/);
+  assert.equal(quiz.diagramSource, 'sequenceDiagram\n    Alice->>Bob: hello');
+  assert.match(diagram.photo, /^https:\/\/mermaid\.ink\/img\/pako:[0-9A-Za-z_-]+\?type=png&bgColor=F7F8FA$/);
   assert.equal(diagram.message_thread_id, 42);
-  assert.doesNotMatch(context.text, /plantuml|@startuml/);
+  assert.doesNotMatch(context.text, /mermaid|sequenceDiagram/);
   assert.match(context.text, /language-java/);
 });
 
-test('uses the PlantUML deflate encoding expected by the public server', () => {
-  assert.equal(
-    encodePlantUml('@startuml\nAlice -> Bob: hello\n@enduml'),
-    'SoWkIImgAStDuNBCoKnELT2rKt3AJx9Io4ZDoSddSaZDIodDpG40',
-  );
+test('uses the Mermaid Ink pako encoding format', () => {
+  assert.match(encodeMermaid('flowchart LR\nA --> B'), /^pako:[0-9A-Za-z_-]+$/);
 });
 
-test('rejects multiple or malformed PlantUML diagrams', () => {
+test('rejects multiple or empty Mermaid diagrams', () => {
   assert.throws(
-    () => parseQuiz(illustratedFixture.replace('\n\n## Answers', `${plantUmlBlock}\n\n## Answers`), fixturePath),
-    /at most one PlantUML diagram/,
+    () => parseQuiz(illustratedFixture.replace('\n\n## Answers', `${mermaidBlock}\n\n## Answers`), fixturePath),
+    /at most one Mermaid diagram/,
   );
   assert.throws(
-    () => parseQuiz(illustratedFixture.replace('@enduml', 'missing-end'), fixturePath),
-    /must start with @startuml and end with @enduml/,
+    () => parseQuiz(illustratedFixture.replace('sequenceDiagram\n    Alice->>Bob: hello', '   '), fixturePath),
+    /must not be empty/,
   );
 });
 

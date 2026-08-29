@@ -12,20 +12,18 @@ For example, if a key has an illustrative hash value of 10, it maps to partition
 
 Existing records stay in their original partition. New records can arrive in the newly selected partition and be processed by a different consumer. If that consumer advances faster, a later event such as `ORDER_SHIPPED` can be observed before an older `ORDER_CREATED` record from the original partition.
 
-```plantuml
-@startuml
-participant Producer
-queue "Partition 1" as P1
-queue "Partition 4" as P4
-participant "Consumer A" as A
-participant "Consumer B" as B
-
-Producer -> P1: ORDER_CREATED, key=order-42
-note over Producer: Topic expands from 3 to 6 partitions
-Producer -> P4: ORDER_SHIPPED, key=order-42
-P4 -> B: ORDER_SHIPPED
-P1 -> A: ORDER_CREATED
-@enduml
+```mermaid
+sequenceDiagram
+    participant Producer
+    participant P1 as Partition 1
+    participant P4 as Partition 4
+    participant A as Consumer A
+    participant B as Consumer B
+    Producer->>P1: ORDER_CREATED, key=order-42
+    Note over Producer: Topic expands from 3 to 6 partitions
+    Producer->>P4: ORDER_SHIPPED, key=order-42
+    P4->>B: ORDER_SHIPPED
+    P1->>A: ORDER_CREATED
 ```
 
 When ordering is a business requirement, choose a partition count with sufficient headroom, coordinate a migration to a new topic, temporarily stop producers and drain existing records before changing the routing scheme, or include per-entity sequence numbers so consumers can detect and correct out-of-order delivery.

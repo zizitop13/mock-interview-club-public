@@ -33,19 +33,17 @@ Here will be implementation requirements, constraints, and acceptance criteria.
 
 ### Expected flow
 
-Here will be a PlantUML diagram example:
+Here will be a Mermaid diagram example:
 
-```plantuml
-@startuml
-actor Candidate
-participant "Lab service" as Service
-database Storage
-
-Candidate -> Service: implement solution
-Service -> Storage: persist result
-Storage --> Service: confirmation
-Service --> Candidate: verification result
-@enduml
+```mermaid
+sequenceDiagram
+    actor Candidate
+    participant Service as Lab service
+    participant Storage
+    Candidate->>Service: implement solution
+    Service->>Storage: persist result
+    Storage-->>Service: confirmation
+    Service-->>Candidate: verification result
 ```
 
 [← Previous: Understand](#stage-1-understand) · [Next: Verify →](#stage-3-verify)

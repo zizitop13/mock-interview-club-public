@@ -12,18 +12,16 @@ In the concrete execution below, the callback reads the field while it still con
 
 The `final` modifier does not delay access to the object. Final-field initialization guarantees apply when the constructor finishes normally and the reference does not escape during construction. Publishing `this` from the constructor forfeits the intended safe-initialization boundary for code that obtains the early reference.
 
-```plantuml
-@startuml
-participant "Constructor thread" as C
-participant EventBus as B
-participant "Dispatcher thread" as D
-
-C -> B: register(this::onPrice)
-B -> D: dispatch callback
-D -> D: read executor (null)
-D -> D: NullPointerException
-C -> C: this.executor = executor
-@enduml
+```mermaid
+sequenceDiagram
+    participant C as Constructor thread
+    participant B as EventBus
+    participant D as Dispatcher thread
+    C->>B: register(this::onPrice)
+    B->>D: dispatch callback
+    D->>D: read executor (null)
+    D->>D: NullPointerException
+    C->>C: this.executor = executor
 ```
 
 A common reason for this design is convenience: the object becomes subscribed as soon as it is created. The safer design separates construction from registration. A factory can finish all field assignments first and only then publish the listener through a thread-safe event-bus operation.
