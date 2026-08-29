@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'quizzes/*/*.md'
+      - 'labs/*/*.md'
       - 'scripts/build-site.js'
       - 'scripts/quiz.js'
       - 'site/**'
@@ -16,6 +17,7 @@ on:
       - main
     paths:
       - 'quizzes/*/*.md'
+      - 'labs/*/*.md'
       - 'scripts/build-site.js'
       - 'scripts/quiz.js'
       - 'site/**'

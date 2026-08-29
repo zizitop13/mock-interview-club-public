@@ -32,3 +32,12 @@
 - Preserve stable page URLs: `/quizzes/<topic>/<slug>/` and `/quizzes/<topic>/<slug>-explain/`.
 - Render fenced `plantuml` and `puml` blocks through the public PlantUML Server. Never put secrets or private data in diagrams.
 - Run `npm run build:site` after changing the generator, layouts, assets, or quiz content.
+
+## Lab authoring
+
+- Store labs at `labs/<track>/<slug>.md`, where `<track>` is currently `coding` or `design`; never nest labs more deeply.
+- Structure each lab as ordered `## Stage N: ...` sections and include a stage navigation block near the top with anchors to every stage.
+- Add previous/next links between stages so a reader can move through the task without returning to the sidebar.
+- Use fenced code examples and fenced `plantuml` or `puml` diagrams where appropriate; never include secrets or private data.
+- Labs are website content only and must not be processed by the Telegram quiz publisher.
+- Run `npm test` and `npm run build:site` after adding or editing labs.

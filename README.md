@@ -38,6 +38,17 @@ The generated `.site-source/` directory is disposable and ignored by Git. Edit t
 
 Before the first deployment, select **GitHub Actions** under **Settings → Pages → Build and deployment → Source**.
 
+## Labs
+
+Multi-stage laboratory exercises live separately from quizzes:
+
+```text
+labs/coding/<slug>.md
+labs/design/<slug>.md
+```
+
+Each lab starts with quick links to its stages and includes previous/next navigation between them. Code fences receive a copy button, and PlantUML fences are rendered as diagrams with access to their source. Labs appear under the **Labs** section of the website and are not published to Telegram.
+
 ## Configure Telegram publication
 
 Create a Telegram bot, add it to the target group or channel with permission to publish, and add these repository secrets under **Settings → Secrets and variables → Actions**:

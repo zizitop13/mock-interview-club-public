@@ -23,12 +23,29 @@ test('generates topic navigation, stable pages, and rendered PlantUML diagrams',
       'utf8',
     );
 
+    const codingLab = await readFile(
+      path.join(outputDirectory, 'labs', 'coding', 'template-lab.md'),
+      'utf8',
+    );
+    const designLab = await readFile(
+      path.join(outputDirectory, 'labs', 'design', 'template-lab.md'),
+      'utf8',
+    );
+
     const navigationQuizCount = navigation.topics
       .reduce((total, topic) => total + topic.quizzes.length, 0);
 
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, navigation.topics.length);
+    assert.equal(result.labs, 2);
+    assert.equal(result.labTracks, 2);
+    assert.deepEqual(navigation.lab_tracks.map(({ slug }) => slug), ['coding', 'design']);
+    assert.match(codingLab, /permalink: "\/labs\/coding\/template-lab\/"/);
+    assert.match(codingLab, /class="stage-navigation"/);
+    assert.match(codingLab, /href="#stage-2-implement"/);
+    assert.match(designLab, /https:\/\/www\.plantuml\.com\/plantuml\/svg\//);
+    assert.match(designLab, /data-copy-diagram/);
     const topicTitles = navigation.topics.map(({ title }) => title);
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);

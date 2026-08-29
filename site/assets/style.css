@@ -233,6 +233,64 @@ a:hover {
   font-weight: 750;
 }
 
+.navigation-group {
+  margin: 30px 0 -14px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.navigation-kind {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.stage-navigation {
+  position: sticky;
+  top: 16px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  margin: 0 0 30px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17, 25, 37, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.stage-navigation strong,
+.stage-navigation a {
+  flex: 0 0 auto;
+}
+
+.stage-navigation strong {
+  margin-right: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stage-navigation a {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.stage-navigation a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .quiz-answers {
   margin: 20px 0 28px;
 }

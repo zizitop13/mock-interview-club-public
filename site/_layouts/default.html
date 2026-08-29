@@ -18,14 +18,29 @@
         <span class="brand-mark">M</span>
         <span>
           <strong>Mock Interview Club</strong>
-          <small>Question library</small>
+          <small>Quizzes and labs</small>
         </span>
       </a>
 
-      <label class="search-label" for="navigation-search">Find a question</label>
-      <input class="search" id="navigation-search" type="search" placeholder="Kafka, locks, queues…" autocomplete="off">
+      <label class="search-label" for="navigation-search">Find content</label>
+      <input class="search" id="navigation-search" type="search" placeholder="Labs, Kafka, locks…" autocomplete="off">
 
-      <nav class="navigation" aria-label="Quiz library">
+      <nav class="navigation" aria-label="Content library">
+        {% if site.data.navigation.lab_tracks.size > 0 %}
+          <p class="navigation-group">Labs</p>
+          {% for track in site.data.navigation.lab_tracks %}
+            <section class="topic" data-topic>
+              <h2>{{ track.title }}</h2>
+              {% for lab in track.labs %}
+                <div class="nav-item" data-nav-item data-search="labs {{ track.title | downcase }} {{ lab.title | downcase }}">
+                  <a class="quiz-link" href="{{ lab.url | relative_url }}">{{ lab.title }}</a>
+                  <span class="navigation-kind">Lab</span>
+                </div>
+              {% endfor %}
+            </section>
+          {% endfor %}
+          <p class="navigation-group">Quizzes</p>
+        {% endif %}
         {% for topic in site.data.navigation.topics %}
           <section class="topic" data-topic>
             <h2>{{ topic.title }}</h2>
