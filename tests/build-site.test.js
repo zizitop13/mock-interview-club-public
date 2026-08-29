@@ -23,10 +23,6 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       'utf8',
     );
 
-    const codingLab = await readFile(
-      path.join(outputDirectory, 'labs', 'coding', 'template-lab.md'),
-      'utf8',
-    );
     const licenseServerLab = await readFile(
       path.join(outputDirectory, 'labs', 'coding', 'floating-license-server.md'),
       'utf8',
@@ -47,10 +43,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal(result.labs, navigationLabCount);
     assert.equal(result.labTracks, 2);
     assert.deepEqual(navigation.lab_tracks.map(({ slug }) => slug), ['coding', 'design']);
-    assert.match(codingLab, /permalink: "\/labs\/coding\/template-lab\/"/);
-    assert.match(codingLab, /class="stage-navigation"/);
-    assert.match(codingLab, /href="#stage-2-implement"/);
     assert.match(licenseServerLab, /permalink: "\/labs\/coding\/floating-license-server\/"/);
+    assert.match(licenseServerLab, /class="stage-navigation"/);
     assert.match(licenseServerLab, /href="#stage-2-design-shared-storage"/);
     assert.match(designLab, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.match(designLab, /data-copy-diagram/);
