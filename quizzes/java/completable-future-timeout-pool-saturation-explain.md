@@ -25,7 +25,7 @@ sequenceDiagram
     API->>Timer: orTimeout(200 ms)
     Timer->>API: complete future exceptionally
     API-->>Client: fallback after 200 ms
-    Note over Worker,Pricing: fetch is still blocked, worker is not released
+    Note over Worker,Pricing: fetch is still blocked,<br/>worker is not released
     loop repeated slow requests
         Client->>API: another request
         API->>Worker: submit or queue
