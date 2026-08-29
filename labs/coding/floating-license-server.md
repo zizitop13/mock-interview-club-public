@@ -62,6 +62,8 @@ public interface LicenseServer {
 
 </details>
 
+[Read the Build solution →]({{ '/labs/coding/floating-license-server-solution/' | relative_url }})
+
 [Next: Design shared storage →](#stage-2-design-shared-storage)
 
 ## Stage 2: Design shared storage

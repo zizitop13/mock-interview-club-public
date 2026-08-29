@@ -27,6 +27,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       path.join(outputDirectory, 'labs', 'coding', 'floating-license-server.md'),
       'utf8',
     );
+    const licenseServerSolution = await readFile(
+      path.join(outputDirectory, 'labs', 'coding', 'floating-license-server-solution.md'),
+      'utf8',
+    );
     const designLab = await readFile(
       path.join(outputDirectory, 'labs', 'design', 'template-lab.md'),
       'utf8',
@@ -44,8 +48,13 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal(result.labTracks, 2);
     assert.deepEqual(navigation.lab_tracks.map(({ slug }) => slug), ['coding', 'design']);
     assert.match(licenseServerLab, /permalink: "\/labs\/coding\/floating-license-server\/"/);
+    assert.match(licenseServerLab, /paired_url: "\/labs\/coding\/floating-license-server-solution\/"/);
     assert.match(licenseServerLab, /class="stage-navigation"/);
     assert.match(licenseServerLab, /href="#stage-2-design-shared-storage"/);
+    assert.match(licenseServerSolution, /permalink: "\/labs\/coding\/floating-license-server-solution\/"/);
+    assert.match(licenseServerSolution, /kind: "Lab solution"/);
+    assert.match(licenseServerSolution, /paired_url: "\/labs\/coding\/floating-license-server\/"/);
+    assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'coding').labs.length, 1);
     assert.match(designLab, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.match(designLab, /data-copy-diagram/);
     const topicTitles = navigation.topics.map(({ title }) => title);

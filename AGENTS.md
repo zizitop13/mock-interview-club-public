@@ -36,6 +36,8 @@
 ## Lab authoring
 
 - Store labs at `labs/<track>/<slug>.md`, where `<track>` is currently `coding` or `design`; never nest labs more deeply.
+- A lab may have a `labs/<track>/<slug>-solution.md` companion. Keep companions out of lab navigation and link both pages through their stable `/labs/<track>/<slug>/` and `/labs/<track>/<slug>-solution/` URLs.
+- Store runnable supporting projects under `lab-projects/<track>/<slug>/`; do not place source trees inside `labs/`.
 - Structure each lab as ordered `## Stage N: ...` sections and include a stage navigation block near the top with anchors to every stage.
 - Add previous/next links between stages so a reader can move through the task without returning to the sidebar.
 - Use fenced code examples and fenced `mermaid` diagrams where appropriate; never include secrets or private data.

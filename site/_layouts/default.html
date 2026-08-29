@@ -64,6 +64,10 @@
         {% if page.paired_url %}
           {% if page.kind == 'Quiz' %}
             <a class="paired-link" href="{{ page.paired_url | relative_url }}">Read the detailed explanation →</a>
+          {% elsif page.kind == 'Lab' %}
+            <a class="paired-link" href="{{ page.paired_url | relative_url }}">Read the Build solution →</a>
+          {% elsif page.kind == 'Lab solution' %}
+            <a class="paired-link" href="{{ page.paired_url | relative_url }}">← Back to the lab</a>
           {% else %}
             <a class="paired-link" href="{{ page.paired_url | relative_url }}">← Back to the quiz</a>
           {% endif %}

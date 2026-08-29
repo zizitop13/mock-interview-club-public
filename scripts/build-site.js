@@ -62,9 +62,18 @@ async function loadLabs(rootDirectory) {
   for (const track of tracks.filter((entry) => entry.isDirectory())) {
     const directory = path.join(labsDirectory, track.name);
     const files = await readdir(directory, { withFileTypes: true });
-    for (const file of files.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))) {
+    const markdownFiles = files.filter((entry) => entry.isFile() && entry.name.endsWith('.md'));
+    const fileNames = new Set(markdownFiles.map((entry) => entry.name));
+    for (const file of markdownFiles.filter((entry) => !entry.name.endsWith('-solution.md'))) {
       const slug = file.name.slice(0, -3);
-      labs.push({ track: track.name, slug, title: titleFromSlug(slug), filePath: path.join('labs', track.name, file.name) });
+      const solutionName = `${slug}-solution.md`;
+      labs.push({
+        track: track.name,
+        slug,
+        title: titleFromSlug(slug),
+        filePath: path.join('labs', track.name, file.name),
+        solutionFilePath: fileNames.has(solutionName) ? path.join('labs', track.name, solutionName) : null,
+      });
     }
   }
   return labs;
@@ -95,10 +104,15 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
   const labTracks = new Map();
   for (const lab of labs) {
     const trackTitle = titleFromSlug(lab.track), url = `/labs/${lab.track}/${lab.slug}/`;
+    const solutionUrl = lab.solutionFilePath ? `/labs/${lab.track}/${lab.slug}-solution/` : '';
     const source = await readFile(path.join(rootDirectory, lab.filePath), 'utf8');
     const destination = path.join(outputDirectory, 'labs', lab.track);
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url })}${transformMermaid(removeFirstHeading(source))}\n`);
+    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url, pairedUrl: solutionUrl })}${transformMermaid(removeFirstHeading(source))}\n`);
+    if (lab.solutionFilePath) {
+      const solutionSource = await readFile(path.join(rootDirectory, lab.solutionFilePath), 'utf8');
+      await writeFile(path.join(destination, `${lab.slug}-solution.md`), `${pageFrontmatter({ title: `${lab.title} solution`, topic: `${trackTitle} labs`, kind: 'Lab solution', url: solutionUrl, pairedUrl: url })}${transformMermaid(removeFirstHeading(solutionSource))}\n`);
+    }
     if (!labTracks.has(lab.track)) labTracks.set(lab.track, { slug: lab.track, title: trackTitle, labs: [] });
     labTracks.get(lab.track).labs.push({ title: lab.title, url });
   }
