@@ -100,16 +100,35 @@ class FloatingLicenseServerImplTest {
 	@Test
 	void obtainExpiredLicense() {
 		licenseServer.obtainLicense("test1");
-		Mockito.when(CLOCK.instant()).thenReturn(Instant.now().plusSeconds(2));
+		Mockito.when(CLOCK.instant()).thenReturn(now.plusSeconds(2));
 
+		assertThat(licenseServer.obtainLicense("test2")).isTrue();
+	}
+
+	@Test
+	void obtainExpiredLicenseForSameUserCreatesANewActiveSession() {
+		licenseServer.obtainLicense("test1");
+		Mockito.when(CLOCK.instant()).thenReturn(now.plusSeconds(2));
+
+		assertThat(licenseServer.obtainLicense("test1")).isTrue();
+		assertThat(licenseServer.obtainLicense("test2")).isFalse();
+	}
+
+	@Test
+	void pingExpiredLicenseReturnsFalseAndFreesCapacity() {
+		licenseServer.obtainLicense("test1");
+		Mockito.when(CLOCK.instant()).thenReturn(now.plusSeconds(2));
+
+		assertThat(licenseServer.pingLicense("test1")).isFalse();
 		assertThat(licenseServer.obtainLicense("test2")).isTrue();
 	}
 
 	@Test
 	void tryToObtainPinkedLicense() {
 		licenseServer.obtainLicense("test1");
-		Mockito.when(CLOCK.instant()).thenReturn(Instant.now().plusSeconds(2));
+		Mockito.when(CLOCK.instant()).thenReturn(now.plusMillis(500));
 		licenseServer.pingLicense("test1");
+		Mockito.when(CLOCK.instant()).thenReturn(now.plusMillis(1200));
 
 		assertThat(licenseServer.obtainLicense("test2")).isFalse();
 	}

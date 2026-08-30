@@ -1,75 +1,112 @@
 # Floating license server — Build solution
 
-This is the Stage 1 solution copied from the `interviews-prep` project. It is one possible in-memory implementation for a single Java process.
+This Stage 1 solution uses one piece of capacity state: a regular `HashMap` guarded by a `ReentrantReadWriteLock`. The invariant is:
+
+> `licenseMap.size() <= licenseNumber`
+
+There is no semaphore whose permits can drift away from the map.
 
 ## Approach
 
-The implementation combines two pieces of state:
+An idempotent request for an existing, active session is read-only, so multiple such requests may proceed under the shared read lock.
 
-- A `ConcurrentHashMap` stores one session per user.
-- A counting `Semaphore` represents the number of licenses that may be active at the same time.
-
-`obtainLicense` first handles the idempotent case for an existing user. For a new user, it tries to acquire a semaphore permit. If capacity is exhausted, it checks for expired sessions, returns their permits, and tries once more.
+Creating a session is different. It may remove expired entries, inspect the map size, and insert a new entry. Those steps form one decision and run together under the write lock.
 
 ```java
 @Override
 public boolean obtainLicense(String userId) {
-    if (licenseMap.containsKey(userId)) {
-        return true;
-    }
-
     Instant now = clock.instant();
 
-    if (!sessionsLimiter.tryAcquire()) {
-        returnExpired(now);
-        if (!sessionsLimiter.tryAcquire()) {
-            return false;
+    readLock.lock();
+    try {
+        LicenseSession existing = licenseMap.get(userId);
+        if (existing != null && !existing.expired(now, expireAfter)) {
+            return true;
         }
+    } finally {
+        readLock.unlock();
     }
 
-    return licenseMap.putIfAbsent(userId, new LicenseSession(now)) == null;
+    writeLock.lock();
+    try {
+        now = clock.instant();
+        returnExpired(now);
+
+        if (licenseMap.containsKey(userId)) {
+            return true;
+        }
+        if (licenseMap.size() >= licenseNumber) {
+            return false;
+        }
+
+        licenseMap.put(userId, new LicenseSession(now));
+        return true;
+    } finally {
+        writeLock.unlock();
+    }
 }
 ```
+
+The method releases the read lock before taking the write lock because `ReentrantReadWriteLock` does not support safe lock upgrading. It then checks the state again: another thread may have inserted, renewed, released, or expired a session between the two lock acquisitions.
 
 ## Heartbeat and expiry
 
-Each `LicenseSession` stores the last heartbeat time. A supplied `Clock` makes expiry behavior testable without waiting in real time.
+Heartbeat changes a session, so it uses the write lock. An already expired session cannot be revived by a late heartbeat; it is removed and the caller must obtain a new session.
 
 ```java
-public boolean expired(Instant now, TemporalAmount timeout) {
-    return !now.isBefore(pinged.plus(timeout));
-}
+@Override
+public boolean pingLicense(String userId) {
+    writeLock.lock();
+    try {
+        Instant now = clock.instant();
+        LicenseSession session = licenseMap.get(userId);
 
-public void ping(Instant time) {
-    this.pinged = time;
+        if (session == null) {
+            return false;
+        }
+        if (session.expired(now, expireAfter)) {
+            licenseMap.remove(userId);
+            return false;
+        }
+
+        session.ping(now);
+        return true;
+    } finally {
+        writeLock.unlock();
+    }
 }
 ```
 
+Expiry cleanup is called only while the write lock is held. Therefore, it cannot race with heartbeat, release, or another allocation.
+
 ## Release
 
-Removing a session and returning its permit makes repeated release return `false` without adding capacity twice.
+Release is a single map removal under the write lock. The map size immediately becomes the available capacity; no permit needs to be returned.
 
 ```java
 @Override
 public boolean releaseLicense(String userId) {
-    if (licenseMap.remove(userId) != null) {
-        sessionsLimiter.release();
-        return true;
+    writeLock.lock();
+    try {
+        return licenseMap.remove(userId) != null;
+    } finally {
+        writeLock.unlock();
     }
-    return false;
 }
 ```
 
-## Review questions
+## Concurrency review
 
-Before treating this as production-ready, review the boundaries between the map and semaphore carefully:
+This version fixes the races in the semaphore implementation:
 
-- Are acquiring a permit and inserting the user one atomic decision?
-- What happens when two concurrent requests obtain a license for the same new user?
-- Can heartbeat race with release or expiry removal?
-- Does every failed insertion return a permit?
+- Capacity checking and insertion are one write-locked operation.
+- Duplicate requests cannot consume capacity twice.
+- Expiry and release cannot free the same capacity twice.
+- Heartbeat cannot race with removal or update a detached session.
+- An expired session is not returned as active and cannot be revived by a late heartbeat.
+- Every access to the ordinary `HashMap` and mutable `LicenseSession` is protected by the same lock.
 
-These questions are useful follow-ups because thread-safe components do not automatically make a multi-step operation atomic.
+The main trade-off is that heartbeat, release, cleanup, and new allocation serialize on one write lock. The default non-fair `ReentrantReadWriteLock` can also delay a writer during a sustained stream of readers. For this small, single-process exercise that is a reasonable correctness-first design; for a write-heavy workload, a simple `ReentrantLock` would likely be clearer and just as fast.
 
 ## Complete Maven project
 

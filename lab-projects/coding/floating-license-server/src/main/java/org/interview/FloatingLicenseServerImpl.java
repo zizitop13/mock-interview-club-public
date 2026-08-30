@@ -3,78 +3,113 @@ package org.interview;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Semaphore;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.interview.model.LicenseSession;
 
 public class FloatingLicenseServerImpl implements LicenseServer {
 
 	private static final int DEFAULT_EXPIRE_AFTER_SECONDS = 60;
-	private final ConcurrentMap<String, LicenseSession> licenseMap;
+
+	private final int licenseNumber;
+	private final Map<String, LicenseSession> licenseMap;
 	private final Clock clock;
-	private final Duration expireAfterSeconds;
-	private final Semaphore sessionsLimiter;
+	private final Duration expireAfter;
+	private final Lock readLock;
+	private final Lock writeLock;
 
 	public FloatingLicenseServerImpl(int licenseNumber) {
 		this(licenseNumber, Clock.systemUTC(), DEFAULT_EXPIRE_AFTER_SECONDS);
 	}
 
 	FloatingLicenseServerImpl(int licenseNumber, Clock clock, int expireAfterSeconds) {
-		if(licenseNumber <= 0){
+		if (licenseNumber <= 0) {
 			throw new IllegalArgumentException("licenseNumber must be greater than 0");
 		}
-		this.licenseMap = new ConcurrentHashMap<>(licenseNumber);
+
+		ReentrantReadWriteLock stateLock = new ReentrantReadWriteLock();
+
+		this.licenseNumber = licenseNumber;
+		this.licenseMap = new HashMap<>(licenseNumber);
 		this.clock = clock;
-		this.expireAfterSeconds = Duration.ofSeconds(expireAfterSeconds);
-		this.sessionsLimiter = new Semaphore(licenseNumber);
+		this.expireAfter = Duration.ofSeconds(expireAfterSeconds);
+		this.readLock = stateLock.readLock();
+		this.writeLock = stateLock.writeLock();
 	}
 
 	@Override
 	public boolean obtainLicense(String userId) {
-		if (licenseMap.containsKey(userId)) {
-			return true;
-		}
-
 		Instant now = clock.instant();
 
-		if(!sessionsLimiter.tryAcquire()){
-			returnExpired(now);
-			if(!sessionsLimiter.tryAcquire()){
-				return false;
+		readLock.lock();
+		try {
+			LicenseSession existing = licenseMap.get(userId);
+			if (existing != null && !existing.expired(now, expireAfter)) {
+				return true;
 			}
+		} finally {
+			readLock.unlock();
 		}
 
-		return licenseMap.putIfAbsent(userId, new LicenseSession(now)) == null;
+		writeLock.lock();
+		try {
+			// State may have changed after releasing the read lock.
+			now = clock.instant();
+			returnExpired(now);
+
+			if (licenseMap.containsKey(userId)) {
+				return true;
+			}
+
+			if (licenseMap.size() >= licenseNumber) {
+				return false;
+			}
+
+			licenseMap.put(userId, new LicenseSession(now));
+			return true;
+		} finally {
+			writeLock.unlock();
+		}
 	}
 
 	@Override
 	public boolean releaseLicense(String userId) {
-		if(licenseMap.remove(userId) != null){
-			sessionsLimiter.release();
-			return true;
+		writeLock.lock();
+		try {
+			return licenseMap.remove(userId) != null;
+		} finally {
+			writeLock.unlock();
 		}
-		return false;
 	}
 
 	@Override
 	public boolean pingLicense(String userId) {
-		if(licenseMap.containsKey(userId)) {
-			licenseMap.get(userId).ping(clock.instant());
+		writeLock.lock();
+		try {
+			Instant now = clock.instant();
+			LicenseSession session = licenseMap.get(userId);
+
+			if (session == null) {
+				return false;
+			}
+
+			if (session.expired(now, expireAfter)) {
+				licenseMap.remove(userId);
+				return false;
+			}
+
+			session.ping(now);
 			return true;
+		} finally {
+			writeLock.unlock();
 		}
-		return false;
 	}
 
 	private void returnExpired(Instant now) {
 		licenseMap.entrySet()
-				.removeIf(entry -> {
-					if(entry.getValue().expired(now, expireAfterSeconds)){
-						sessionsLimiter.release();
-						return true;
-					}
-					return false;
-				});
+				.removeIf(entry -> entry.getValue().expired(now, expireAfter));
 	}
 }
