@@ -4,8 +4,6 @@ This Stage 1 solution uses one piece of capacity state: a regular `HashMap` guar
 
 > `licenseMap.size() <= licenseNumber`
 
-There is no semaphore whose permits can drift away from the map.
-
 ## Approach
 
 An idempotent request for an existing, active session is read-only, so multiple such requests may proceed under the shared read lock.
