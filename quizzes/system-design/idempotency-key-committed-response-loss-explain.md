@@ -19,12 +19,12 @@ sequenceDiagram
     participant B as API instance B
     participant D as Database
     C->>A: POST payment (key K, hash H)
-    A->>D: Begin; claim K; create charge; store response
+    A->>D: Begin transaction<br/>Claim K, create charge, store response
     D-->>A: Commit
     A--xC: Response lost
     C->>B: Retry (key K, hash H)
     B->>D: Read K and validate H
-    D-->>B: Stored response; no new charge
+    D-->>B: Stored response, no new charge
     B-->>C: Replay original response
 ```
 
