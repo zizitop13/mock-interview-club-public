@@ -1,6 +1,6 @@
 ---
 id: system-design-idempotency-key-committed-response-loss
-status: draft
+status: published
 ---
 
 ## Question
