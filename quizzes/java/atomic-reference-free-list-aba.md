@@ -1,6 +1,6 @@
 ---
 id: java-atomic-reference-free-list-aba
-status: draft
+status: published
 ---
 
 ## Question
