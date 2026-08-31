@@ -19,19 +19,13 @@ Assume the list starts as `A -> B -> C`:
 The atomic operation is behaving exactly as specified. The algorithm is wrong because reference equality alone cannot distinguish the original A state from a later A state. This is the ABA problem, which is especially relevant when nodes are pooled or reused.
 
 ```mermaid
-sequenceDiagram
-    participant T1
-    participant Head
-    participant T2
-    Note over Head: A -> B -> C
-    T1->>Head: read A and stale next B
-    T2->>Head: pop A
-    T2->>Head: pop B
-    Note over T2: B is handed to a caller
-    T2->>Head: push A
-    Note over Head: A -> C
-    T1->>Head: CAS(A, B) succeeds
-    Note over Head: B -> C; A is lost
+graph TD
+    S0["Initial head: A to B to C"] --> T1["T1 reads head A and next B"]
+    T1 --> T2["T2 pops A and then B"]
+    T2 --> U["B is handed to a caller"]
+    U --> P["T2 pushes A back; head is A to C"]
+    P --> CAS["T1 compares A and swaps head to stale B"]
+    CAS --> BAD["Corrupted head: B to C; A is lost"]
 ```
 
 A common fix is to attach a generation stamp to the head. Each successful mutation increments the stamp, so T1's CAS fails even if the reference returns to A. Another valid design is to avoid reusing nodes while any thread might still hold an old reference, using an appropriate reclamation strategy.
