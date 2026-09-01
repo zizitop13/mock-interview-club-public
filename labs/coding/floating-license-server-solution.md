@@ -1,33 +1,21 @@
 # Floating license server — Build solution
 
-This Stage 1 solution uses one piece of capacity state: a regular `HashMap` guarded by a `ReentrantReadWriteLock`. The invariant is:
+This Stage 1 solution uses one piece of capacity state: a regular `HashMap` guarded by a single `ReentrantLock`. The invariant is:
 
 > `licenseMap.size() <= licenseNumber`
 
 ## Approach
 
-An idempotent request for an existing, active session is read-only, so multiple such requests may proceed under the shared read lock.
+Every public operation acquires the same lock before it reads or changes session state. This makes each business transition atomic from the point of view of other callers.
 
-Creating a session is different. It may remove expired entries, inspect the map size, and insert a new entry. Those steps form one decision and run together under the write lock.
+For acquisition, expiry cleanup, the idempotency check, the capacity check, and insertion happen inside one critical section. No other request can change the map between those steps.
 
 ```java
 @Override
 public boolean obtainLicense(String userId) {
-    Instant now = clock.instant();
-
-    readLock.lock();
+    stateLock.lock();
     try {
-        LicenseSession existing = licenseMap.get(userId);
-        if (existing != null && !existing.expired(now, expireAfter)) {
-            return true;
-        }
-    } finally {
-        readLock.unlock();
-    }
-
-    writeLock.lock();
-    try {
-        now = clock.instant();
+        Instant now = clock.instant();
         returnExpired(now);
 
         if (licenseMap.containsKey(userId)) {
@@ -40,21 +28,21 @@ public boolean obtainLicense(String userId) {
         licenseMap.put(userId, new LicenseSession(now));
         return true;
     } finally {
-        writeLock.unlock();
+        stateLock.unlock();
     }
 }
 ```
 
-The method releases the read lock before taking the write lock because `ReentrantReadWriteLock` does not support safe lock upgrading. It then checks the state again: another thread may have inserted, renewed, released, or expired a session between the two lock acquisitions.
+The map is the only capacity counter. Removing a session immediately frees one place; inserting a session consumes one place.
 
 ## Heartbeat and expiry
 
-Heartbeat changes a session, so it uses the write lock. An already expired session cannot be revived by a late heartbeat; it is removed and the caller must obtain a new session.
+Heartbeat uses the same lock because it changes the session timestamp. An already expired session cannot be revived by a late heartbeat; it is removed and the caller must obtain a new session.
 
 ```java
 @Override
 public boolean pingLicense(String userId) {
-    writeLock.lock();
+    stateLock.lock();
     try {
         Instant now = clock.instant();
         LicenseSession session = licenseMap.get(userId);
@@ -70,33 +58,40 @@ public boolean pingLicense(String userId) {
         session.ping(now);
         return true;
     } finally {
-        writeLock.unlock();
+        stateLock.unlock();
     }
 }
 ```
 
-Expiry cleanup is called only while the write lock is held. Therefore, it cannot race with heartbeat, release, or another allocation.
+Expiry cleanup is called only while the same lock is held. It therefore has a clear order relative to heartbeat, release, and allocation.
 
 ## Release
 
-Release is a single map removal under the write lock. The map size immediately becomes the available capacity; no permit needs to be returned.
+Release is a map removal inside the same critical section. A second release finds no session and returns `false`, so capacity cannot be freed twice.
 
 ```java
 @Override
 public boolean releaseLicense(String userId) {
-    writeLock.lock();
+    stateLock.lock();
     try {
         return licenseMap.remove(userId) != null;
     } finally {
-        writeLock.unlock();
+        stateLock.unlock();
     }
 }
 ```
 
 ## Concurrency review
 
+The design preserves these properties:
 
-The main trade-off is that heartbeat, release, cleanup, and new allocation serialize on one write lock. The default non-fair `ReentrantReadWriteLock` can also delay a writer during a sustained stream of readers. For this small, single-process exercise that is a reasonable correctness-first design; for a write-heavy workload, a simple `ReentrantLock` would likely be clearer and just as fast.
+- Capacity checking and insertion are one atomic operation.
+- Duplicate acquisition by one user does not consume capacity twice.
+- Expiry, heartbeat, release, and allocation cannot interleave halfway through a state transition.
+- The mutable session timestamp is always accessed while the same lock is held.
+- `licenseMap.size()` remains the only source of capacity truth.
+
+The trade-off is deliberate: every request serializes on one lock. For a small, single-process coding exercise, this is a simple correctness-first design. If profiling later shows contention, the state model can be redesigned rather than adding another synchronization mechanism beside the map.
 
 ## Complete Maven project
 
