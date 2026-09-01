@@ -43,7 +43,7 @@ flowchart LR
 ### Hint
 
 <details markdown="1">
-<summary>Show a suggested starting interface</summary>
+<summary>Show a suggested starting interface and implementation direction</summary>
 
 ```java
 public interface LicenseServer {
@@ -59,6 +59,9 @@ public interface LicenseServer {
 - `obtainLicense` returns `true` when the user already has an active license or receives a new one.
 - `pingLicense` returns `true` only when an active session is renewed.
 - `releaseLicense` returns `true` only when that call releases an active session.
+- A regular `HashMap` can be the single source of truth: its size is the number of active sessions.
+- One `ReentrantLock` can protect each complete operation, including expiry cleanup, capacity checking, and mutation.
+- Keep the capacity check and insertion inside the same critical section.
 
 </details>
 
@@ -68,7 +71,7 @@ public interface LicenseServer {
 
 ## Stage 2: Design shared storage
 
-The service must now run as multiple instances. Any instance may handle any request, and instances may restart at any time. Process-local state and JVM locks can no longer coordinate allocation.
+The service must now run as multiple instances. Any instance may handle any request, and instances may restart at any time. Process-local state and JVM synchronization can no longer coordinate allocation.
 
 ```mermaid
 flowchart TB
@@ -84,7 +87,7 @@ flowchart TB
 - Which shared data store would you choose, and why does it fit this workload?
 - How would you model pools, purchased capacity, users, active sessions, and expiry?
 - Which atomic storage operation prevents two instances from allocating the final license?
-- How does the design keep `active sessions <= N` without relying on a JVM lock or a count-then-insert race?
+- How does the design keep `active sessions <= N` without a count-then-insert race?
 - How does repeated acquisition by the same user remain idempotent across instances?
 - What happens when heartbeat races with expiry and reallocation?
 - How do you prevent a delayed or repeated release from freeing a newly reassigned license?
