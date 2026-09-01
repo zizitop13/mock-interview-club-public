@@ -18,7 +18,7 @@ Suppose page 1 ends like this:
 10:03  id=103  <- last row returned, so T = 10:03
 ```
 
-The next request carries exactly `T = 10:03`, equal to the last row's `created_at`; it does not calculate a slightly smaller timestamp or add/subtract a duration. A naive predicate then uses `created_at < T`, so the rows returned next have timestamps smaller than `10:03`.
+The next request carries `T = 10:03`, equal to the last row's `created_at`. A naive predicate then uses `created_at < T`, so the rows returned next have timestamps smaller than `10:03`.
 
 The problem is that another row may have the same timestamp but fall beyond page 1's limit:
 
