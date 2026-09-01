@@ -1,5 +1,5 @@
 ---
-id: system-design-keyset-pagination-timestamp-ties
+id: sql-keyset-pagination-timestamp-ties
 status: published
 ---
 
