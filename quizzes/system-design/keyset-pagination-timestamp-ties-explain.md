@@ -8,7 +8,7 @@ b. Order and cursor by (created_at, id), with a matching composite keyset predic
 
 Keyset pagination works only when the ordering columns identify an unambiguous position. Here, `created_at` is not unique.
 
-A cursor here is an application/API pagination position, not a SQL cursor. It contains values taken from the last row returned on the previous page. With composite keyset pagination, that position is `(created_at, id)`.
+A cursor here is an application/API pagination position, not a SQL cursor. In the original query, it contains only the `created_at` value taken from the last row returned on the previous page.
 
 Suppose page 1 ends like this:
 
