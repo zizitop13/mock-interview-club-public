@@ -1,6 +1,6 @@
 ---
 id: system-design-keyset-pagination-timestamp-ties
-status: draft
+status: published
 ---
 
 ## Question
