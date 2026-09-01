@@ -95,14 +95,6 @@ public boolean releaseLicense(String userId) {
 
 ## Concurrency review
 
-This version fixes the races in the semaphore implementation:
-
-- Capacity checking and insertion are one write-locked operation.
-- Duplicate requests cannot consume capacity twice.
-- Expiry and release cannot free the same capacity twice.
-- Heartbeat cannot race with removal or update a detached session.
-- An expired session is not returned as active and cannot be revived by a late heartbeat.
-- Every access to the ordinary `HashMap` and mutable `LicenseSession` is protected by the same lock.
 
 The main trade-off is that heartbeat, release, cleanup, and new allocation serialize on one write lock. The default non-fair `ReentrantReadWriteLock` can also delay a writer during a sustained stream of readers. For this small, single-process exercise that is a reasonable correctness-first design; for a write-heavy workload, a simple `ReentrantLock` would likely be clearer and just as fast.
 
