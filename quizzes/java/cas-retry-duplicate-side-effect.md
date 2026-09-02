@@ -1,6 +1,6 @@
 ---
 id: java-cas-retry-duplicate-side-effect
-status: draft
+status: published
 ---
 
 ## Question
