@@ -1,6 +1,6 @@
 ---
 id: system-design-replica-read-your-writes-token
-status: draft
+status: published
 ---
 
 ## Question
