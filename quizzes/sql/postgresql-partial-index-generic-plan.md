@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-partial-index-generic-plan
-status: draft
+status: published
 ---
 
 ## Question
