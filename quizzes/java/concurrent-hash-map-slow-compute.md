@@ -1,6 +1,6 @@
 ---
 id: java-concurrent-hash-map-slow-compute
-status: draft
+status: published
 ---
 
 ## Question
