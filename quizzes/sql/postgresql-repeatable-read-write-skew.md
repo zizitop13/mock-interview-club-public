@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-repeatable-read-write-skew
-status: draft
+status: published
 ---
 
 ## Question
