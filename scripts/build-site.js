@@ -27,18 +27,19 @@ function transformMermaid(markdown) {
 function removeFrontmatter(markdown) { return markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim(); }
 function removeFirstHeading(markdown) { return markdown.replace(/^#\s+[^\n]+\r?\n+/, '').trim(); }
 
-function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explanationUrl) {
+function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explanationUrl, quizId) {
   const answerRows = answers.map(({ letter, text }) => [
     `<div class="quiz-answer-row" data-correct="${letter === correctAnswer}">`,
-    '  <label class="quiz-answer">', '    <input type="checkbox" data-quiz-answer>',
+    '  <label class="quiz-answer">', `    <input type="checkbox" data-quiz-answer value="${letter}">`,
     `    <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`, '  </label>', '</div>',
   ].join('\n')).join('\n');
   return markdown.replace(/## Answers\s*\n[\s\S]*?(?=<!--\s*correct-answer:)/, [
-    '## Answers', '', `<div class="quiz-answers">\n${answerRows}\n</div>`,
+    '## Answers', '', `<div class="quiz-answers" data-quiz-id="${escapeHtml(quizId)}">\n${answerRows}\n</div>`,
     '<section class="answer-result" data-answer-result hidden aria-live="polite">',
     '  <strong class="answer-result-status" data-answer-status></strong>',
     `  <p>${escapeHtml(explanation)}</p>`,
     `  <a class="answer-explanation-link" href="{{ '${explanationUrl}' | relative_url }}">Read the full explanation →</a>`,
+    '  <p class="quiz-save-status" data-quiz-save-status>Sign in to save your answer.</p>',
     '</section>', '',
   ].join('\n')).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
 }
@@ -95,7 +96,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     ]);
     const destination = path.join(outputDirectory, 'quizzes', quiz.topic);
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl))}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`))}\n`);
     await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n`);
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
     topics.get(quiz.topic).quizzes.push({ title: quizTitle, quiz_url: quizUrl, explanation_url: explanationUrl });

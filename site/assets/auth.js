@@ -9,6 +9,13 @@ import {
   signInWithPopup,
   signOut,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAvpOopA-ySiMq78WT7N-G2B8h8YlBZVnc',
@@ -24,6 +31,7 @@ const root = document.querySelector('[data-auth-root]');
 if (root) {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const database = getFirestore(app);
   const signedOutView = root.querySelector('[data-auth-signed-out]');
   const signedInView = root.querySelector('[data-auth-signed-in]');
   const name = root.querySelector('[data-auth-name]');
@@ -32,6 +40,9 @@ if (root) {
   const status = root.querySelector('[data-auth-status]');
   const authButtons = [...root.querySelectorAll('[data-auth-provider]')];
   const signOutButton = root.querySelector('[data-auth-sign-out]');
+  const quizAnswers = document.querySelector('.quiz-answers[data-quiz-id]');
+  const quizSaveStatus = document.querySelector('[data-quiz-save-status]');
+  let currentUser = null;
 
   const providers = {
     google: new GoogleAuthProvider(),
@@ -50,6 +61,10 @@ if (root) {
   function showStatus(message = '') {
     status.textContent = message;
     status.hidden = message === '';
+  }
+
+  function showQuizSaveStatus(message) {
+    if (quizSaveStatus) quizSaveStatus.textContent = message;
   }
 
   function friendlyError(error) {
@@ -82,9 +97,61 @@ if (root) {
     }
   }
 
+  async function saveQuizAnswer({ quizId, answer }) {
+    if (!currentUser) {
+      showQuizSaveStatus('Sign in to save this answer.');
+      return;
+    }
+
+    showQuizSaveStatus('Saving answer…');
+
+    try {
+      await setDoc(doc(database, 'users', currentUser.uid, 'quizAnswers', quizId), {
+        selectedAnswer: answer,
+        updatedAt: serverTimestamp(),
+      });
+      showQuizSaveStatus('Answer saved.');
+    } catch {
+      showQuizSaveStatus('Could not save the answer. Please try again.');
+    }
+  }
+
+  async function restoreQuizAnswer(user) {
+    if (!quizAnswers) return;
+
+    showQuizSaveStatus('Loading your saved answer…');
+
+    try {
+      const snapshot = await getDoc(doc(
+        database,
+        'users',
+        user.uid,
+        'quizAnswers',
+        quizAnswers.dataset.quizId,
+      ));
+
+      if (!snapshot.exists()) {
+        showQuizSaveStatus('Your answer will be saved automatically.');
+        return;
+      }
+
+      document.dispatchEvent(new CustomEvent('quiz-answer-loaded', {
+        detail: {
+          quizId: quizAnswers.dataset.quizId,
+          answer: snapshot.data().selectedAnswer,
+        },
+      }));
+      showQuizSaveStatus('Saved answer restored.');
+    } catch {
+      showQuizSaveStatus('Could not load the saved answer.');
+    }
+  }
+
   for (const button of authButtons) {
     button.addEventListener('click', () => signIn(button.dataset.authProvider));
   }
+
+  document.addEventListener('quiz-answer-selected', (event) => saveQuizAnswer(event.detail));
 
   signOutButton?.addEventListener('click', async () => {
     setBusy(true);
@@ -105,10 +172,14 @@ if (root) {
   });
 
   onAuthStateChanged(auth, (user) => {
+    currentUser = user;
     signedOutView.hidden = Boolean(user);
     signedInView.hidden = !user;
 
-    if (!user) return;
+    if (!user) {
+      showQuizSaveStatus('Sign in to save your answer.');
+      return;
+    }
 
     name.textContent = user.displayName || user.email || 'Signed in';
     email.textContent = user.email && user.email !== name.textContent ? user.email : '';
@@ -122,5 +193,7 @@ if (root) {
       avatar.removeAttribute('src');
       avatar.hidden = true;
     }
+
+    restoreQuizAnswer(user);
   });
 }

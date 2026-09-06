@@ -494,6 +494,12 @@ a:hover {
   text-decoration: none;
 }
 
+.quiz-save-status {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .content pre,
 .diagram {
   position: relative;

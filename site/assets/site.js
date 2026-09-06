@@ -23,32 +23,56 @@ search?.addEventListener('input', () => {
   }
 });
 
+function displayQuizAnswer(answers, selected) {
+  for (const checkbox of answers.querySelectorAll('[data-quiz-answer]')) {
+    checkbox.checked = checkbox === selected;
+  }
+
+  for (const row of answers.querySelectorAll('.quiz-answer-row')) {
+    row.classList.remove('is-correct', 'is-incorrect');
+  }
+
+  const result = answers.parentElement.querySelector('[data-answer-result]');
+  if (!result) return;
+
+  result.hidden = !selected.checked;
+  if (!selected.checked) return;
+
+  const row = selected.closest('.quiz-answer-row');
+  const correct = row.dataset.correct === 'true';
+  row.classList.add(correct ? 'is-correct' : 'is-incorrect');
+  result.classList.toggle('is-correct', correct);
+  result.classList.toggle('is-incorrect', !correct);
+  result.querySelector('[data-answer-status]').textContent = correct ? 'Correct!' : 'Incorrect';
+}
+
 for (const answers of document.querySelectorAll('.quiz-answers')) {
   answers.addEventListener('change', (event) => {
     if (!event.target.matches('[data-quiz-answer]')) return;
 
-    for (const checkbox of answers.querySelectorAll('[data-quiz-answer]')) {
-      if (checkbox !== event.target) checkbox.checked = false;
+    displayQuizAnswer(answers, event.target);
+
+    if (event.target.checked && answers.dataset.quizId) {
+      document.dispatchEvent(new CustomEvent('quiz-answer-selected', {
+        detail: {
+          quizId: answers.dataset.quizId,
+          answer: event.target.value,
+        },
+      }));
     }
-
-    for (const row of answers.querySelectorAll('.quiz-answer-row')) {
-      row.classList.remove('is-correct', 'is-incorrect');
-    }
-
-    const result = answers.parentElement.querySelector('[data-answer-result]');
-    if (!result) return;
-
-    result.hidden = !event.target.checked;
-    if (!event.target.checked) return;
-
-    const row = event.target.closest('.quiz-answer-row');
-    const correct = row.dataset.correct === 'true';
-    row.classList.add(correct ? 'is-correct' : 'is-incorrect');
-    result.classList.toggle('is-correct', correct);
-    result.classList.toggle('is-incorrect', !correct);
-    result.querySelector('[data-answer-status]').textContent = correct ? 'Correct!' : 'Incorrect';
   });
 }
+
+document.addEventListener('quiz-answer-loaded', (event) => {
+  for (const answers of document.querySelectorAll('.quiz-answers[data-quiz-id]')) {
+    if (answers.dataset.quizId !== event.detail?.quizId) continue;
+
+    const selected = [...answers.querySelectorAll('[data-quiz-answer]')]
+      .find((answer) => answer.value === event.detail.answer);
+
+    if (selected) displayQuizAnswer(answers, selected);
+  }
+});
 
 for (const pre of document.querySelectorAll('.content pre')) {
   const wrapper = document.createElement('div');

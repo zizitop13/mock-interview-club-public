@@ -52,6 +52,9 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /new GithubAuthProvider\(\)/);
     assert.match(authScript, /signInWithPopup\(auth, provider\)/);
     assert.match(authScript, /onAuthStateChanged\(auth/);
+    assert.match(authScript, /getFirestore\(app\)/);
+    assert.match(authScript, /'users', currentUser\.uid, 'quizAnswers', quizId/);
+    assert.match(authScript, /serverTimestamp\(\)/);
     assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
     assert.match(style, /\.auth-panel \{/);
     assert.equal(result.quizzes, navigationQuizCount);
@@ -75,8 +78,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
     assert.match(explanation, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.doesNotMatch(explanation, /```mermaid/);
-    assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer>/g) ?? []).length, 4);
+    assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer value="[a-d]">/g) ?? []).length, 4);
     assert.equal((quiz.match(/<div class="quiz-answer-row" data-correct="(?:true|false)">/g) ?? []).length, 4);
+    assert.match(quiz, /<div class="quiz-answers" data-quiz-id="java--read-write-lock-downgrade">/);
+    assert.match(quiz, /data-quiz-save-status/);
     assert.match(quiz, /<label class="quiz-answer">[\s\S]*?<strong>a\.<\/strong>/);
     assert.equal((quiz.match(/data-correct="true"/g) ?? []).length, 1);
     assert.equal((quiz.match(/data-correct="false"/g) ?? []).length, 3);
