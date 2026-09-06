@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-long-transaction-vacuum-horizon
-status: draft
+status: published
 ---
 
 ## Question
