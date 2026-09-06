@@ -14,6 +14,9 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
   try {
     const result = await buildSite({ rootDirectory, outputDirectory });
     const navigation = JSON.parse(await readFile(path.join(outputDirectory, '_data', 'navigation.json'), 'utf8'));
+    const layout = await readFile(path.join(outputDirectory, '_layouts', 'default.html'), 'utf8');
+    const authScript = await readFile(path.join(outputDirectory, 'assets', 'auth.js'), 'utf8');
+    const style = await readFile(path.join(outputDirectory, 'assets', 'style.css'), 'utf8');
     const explanation = await readFile(
       path.join(outputDirectory, 'quizzes', 'kafka', 'partition-count-key-ordering-explain.md'),
       'utf8',
@@ -41,6 +44,16 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const navigationLabCount = navigation.lab_tracks
       .reduce((total, track) => total + track.labs.length, 0);
 
+    assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}"/);
+    assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 2);
+    assert.match(layout, /data-auth-provider="google"/);
+    assert.match(layout, /data-auth-provider="github"/);
+    assert.match(authScript, /new GoogleAuthProvider\(\)/);
+    assert.match(authScript, /new GithubAuthProvider\(\)/);
+    assert.match(authScript, /signInWithPopup\(auth, provider\)/);
+    assert.match(authScript, /onAuthStateChanged\(auth/);
+    assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
+    assert.match(style, /\.auth-panel \{/);
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, navigation.topics.length);
