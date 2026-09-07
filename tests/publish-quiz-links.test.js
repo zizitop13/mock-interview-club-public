@@ -41,7 +41,7 @@ test('reserves the quiz before sending only its question and site link', async (
         const payload = JSON.parse(request.body);
         assert.equal(payload.message_thread_id, 42);
         assert.equal(payload.parse_mode, 'HTML');
-        assert.match(payload.text, /What can happen/);
+        assert.match(payload.text, /What is wrong with this code/);
         assert.match(payload.text, /quizzes\/java\/read-write-lock-downgrade\//);
         assert.doesNotMatch(payload.text, /read-write-lock-downgrade-explain/);
         assert.equal(payload.poll, undefined);
