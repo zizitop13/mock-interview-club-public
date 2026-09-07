@@ -22,17 +22,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
 
-      - run: npm ci
-      - run: npm run validate:quizzes
+      - run: npm run validate
       - run: npm test
 
       - name: Configure publication commit author
@@ -44,5 +43,6 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          QUIZ_SITE_BASE_URL: https://zizitop13.github.io/mock-interview-club-public
+          TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
+          QUIZ_SITE_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: npm run publish:quiz-links
