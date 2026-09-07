@@ -49,6 +49,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 2);
     assert.match(layout, /data-auth-provider="google"/);
     assert.match(layout, /data-auth-provider="github"/);
+    assert.match(layout, /GitHub Pages logs visitors' IP addresses for security purposes/);
     assert.match(authScript, /new GoogleAuthProvider\(\)/);
     assert.match(authScript, /new GithubAuthProvider\(\)/);
     assert.match(authScript, /signInWithPopup\(auth, provider\)/);
@@ -56,9 +57,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /getFirestore\(app\)/);
     assert.match(authScript, /'users', currentUser\.uid, 'quizAnswers', quizId/);
     assert.match(authScript, /serverTimestamp\(\)/);
-    assert.match(authScript, /\[Mock Interview Club\]\[Firebase\]/);
-    assert.match(authScript, /console\.error\(LOG_PREFIX/);
-    assert.match(authScript, /Quiz answer save failed/);
+    assert.doesNotMatch(authScript, /console\.(info|error)|LOG_PREFIX|logInfo|logError/);
     assert.match(authScript, /error\?\.code/);
     assert.match(authScript, /quiz-answer-save-failed/);
     assert.match(authScript, /Your choice is now locked/);
