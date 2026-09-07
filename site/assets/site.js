@@ -46,13 +46,24 @@ function displayQuizAnswer(answers, selected) {
   result.querySelector('[data-answer-status]').textContent = correct ? 'Correct!' : 'Incorrect';
 }
 
+function setQuizAnswerLocked(answers, locked) {
+  answers.dataset.locked = String(locked);
+  answers.classList.toggle('is-locked', locked);
+
+  for (const checkbox of answers.querySelectorAll('[data-quiz-answer]')) {
+    checkbox.disabled = locked;
+  }
+}
+
 for (const answers of document.querySelectorAll('.quiz-answers')) {
   answers.addEventListener('change', (event) => {
     if (!event.target.matches('[data-quiz-answer]')) return;
+    if (answers.dataset.locked === 'true') return;
 
     displayQuizAnswer(answers, event.target);
 
     if (event.target.checked && answers.dataset.quizId) {
+      setQuizAnswerLocked(answers, true);
       console.info('[Mock Interview Club][Quiz]', 'Answer selected', {
         quizId: answers.dataset.quizId,
         answer: event.target.value,
@@ -75,7 +86,18 @@ document.addEventListener('quiz-answer-loaded', (event) => {
     const selected = [...answers.querySelectorAll('[data-quiz-answer]')]
       .find((answer) => answer.value === event.detail.answer);
 
-    if (selected) displayQuizAnswer(answers, selected);
+    if (selected) {
+      displayQuizAnswer(answers, selected);
+      setQuizAnswerLocked(answers, true);
+    }
+  }
+});
+
+document.addEventListener('quiz-answer-save-failed', (event) => {
+  for (const answers of document.querySelectorAll('.quiz-answers[data-quiz-id]')) {
+    if (answers.dataset.quizId === event.detail?.quizId) {
+      setQuizAnswerLocked(answers, false);
+    }
   }
 });
 

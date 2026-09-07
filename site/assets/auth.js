@@ -89,6 +89,12 @@ if (root) {
     if (quizSaveStatus) quizSaveStatus.textContent = message;
   }
 
+  function allowQuizRetry(quizId) {
+    document.dispatchEvent(new CustomEvent('quiz-answer-save-failed', {
+      detail: { quizId },
+    }));
+  }
+
   function friendlyError(error) {
     const messages = {
       'auth/account-exists-with-different-credential': 'This email already uses another sign-in provider. Sign in with that provider first.',
@@ -125,6 +131,7 @@ if (root) {
   async function saveQuizAnswer({ quizId, answer }) {
     if (!currentUser) {
       showQuizSaveStatus('Sign in to save this answer.');
+      allowQuizRetry(quizId);
       return;
     }
 
@@ -138,16 +145,22 @@ if (root) {
         updatedAt: serverTimestamp(),
       });
       logInfo('Quiz answer saved', { documentPath, quizId, answer });
-      showQuizSaveStatus('Answer saved.');
+      showQuizSaveStatus('Answer saved. Your choice is now locked.');
     } catch (error) {
       logError('Quiz answer save failed', error, { documentPath, quizId, answer });
       const errorCode = error?.code ? ` (${error.code})` : '';
       showQuizSaveStatus(`Could not save the answer${errorCode}. Check the browser console.`);
+
+      const restored = error?.code === 'permission-denied'
+        ? await restoreQuizAnswer(currentUser)
+        : false;
+
+      if (!restored) allowQuizRetry(quizId);
     }
   }
 
   async function restoreQuizAnswer(user) {
-    if (!quizAnswers) return;
+    if (!quizAnswers) return false;
 
     showQuizSaveStatus('Loading your saved answer…');
     const quizId = quizAnswers.dataset.quizId;
@@ -166,7 +179,7 @@ if (root) {
       if (!snapshot.exists()) {
         logInfo('No saved quiz answer found', { documentPath, quizId });
         showQuizSaveStatus('Your answer will be saved automatically.');
-        return;
+        return false;
       }
 
       document.dispatchEvent(new CustomEvent('quiz-answer-loaded', {
@@ -180,11 +193,13 @@ if (root) {
         quizId,
         answer: snapshot.data().selectedAnswer,
       });
-      showQuizSaveStatus('Saved answer restored.');
+      showQuizSaveStatus('Saved answer restored. Your choice is locked.');
+      return true;
     } catch (error) {
       logError('Saved quiz answer load failed', error, { documentPath, quizId });
       const errorCode = error?.code ? ` (${error.code})` : '';
       showQuizSaveStatus(`Could not load the saved answer${errorCode}. Check the browser console.`);
+      return false;
     }
   }
 

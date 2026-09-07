@@ -436,6 +436,14 @@ a:hover {
   background: var(--accent-soft);
 }
 
+.quiz-answers.is-locked .quiz-answer {
+  cursor: not-allowed;
+}
+
+.quiz-answers.is-locked .quiz-answer:not(:has(input:checked)) {
+  opacity: 0.62;
+}
+
 .quiz-answer-row.is-correct .quiz-answer {
   border-color: #39c879;
   background: rgba(57, 200, 121, 0.13);

@@ -16,6 +16,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const navigation = JSON.parse(await readFile(path.join(outputDirectory, '_data', 'navigation.json'), 'utf8'));
     const layout = await readFile(path.join(outputDirectory, '_layouts', 'default.html'), 'utf8');
     const authScript = await readFile(path.join(outputDirectory, 'assets', 'auth.js'), 'utf8');
+    const siteScript = await readFile(path.join(outputDirectory, 'assets', 'site.js'), 'utf8');
     const style = await readFile(path.join(outputDirectory, 'assets', 'style.css'), 'utf8');
     const explanation = await readFile(
       path.join(outputDirectory, 'quizzes', 'kafka', 'partition-count-key-ordering-explain.md'),
@@ -59,6 +60,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /console\.error\(LOG_PREFIX/);
     assert.match(authScript, /Quiz answer save failed/);
     assert.match(authScript, /error\?\.code/);
+    assert.match(authScript, /quiz-answer-save-failed/);
+    assert.match(authScript, /Your choice is now locked/);
+    assert.match(siteScript, /setQuizAnswerLocked/);
+    assert.match(siteScript, /checkbox\.disabled = locked/);
+    assert.match(siteScript, /quiz-answer-save-failed/);
     assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
     assert.match(style, /\.auth-panel \{/);
     assert.equal(result.quizzes, navigationQuizCount);
