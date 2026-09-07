@@ -27,12 +27,13 @@
         <div data-auth-signed-out>
           <p class="auth-title">Join the club</p>
           <p class="auth-copy">Sign in or register with:</p>
-          <p class="auth-copy">
-            By continuing, you allow Firebase Authentication to process your account ID,
-            name, email address, profile photo, and sign-in provider. We store your Firebase
-            user ID and quiz choices (quiz ID, selected answer, and save time) so answers can
-            be restored. We never receive your Google or GitHub password.
-          </p>
+          <button
+            class="auth-privacy-link"
+            type="button"
+            popovertarget="auth-privacy-dialog"
+          >
+            What personal data is used?
+          </button>
           <div class="auth-actions">
             <button class="auth-button" type="button" data-auth-provider="google">
               <span class="auth-provider-mark" aria-hidden="true">G</span>
@@ -55,6 +56,30 @@
         </div>
 
         <p class="auth-status" data-auth-status role="status" aria-live="polite" hidden></p>
+
+        <div
+          class="auth-privacy-dialog"
+          id="auth-privacy-dialog"
+          popover
+          role="dialog"
+          aria-labelledby="auth-privacy-title"
+        >
+          <h2 id="auth-privacy-title">Personal data used for sign-in</h2>
+          <p>When you sign in with Google or GitHub:</p>
+          <ul>
+            <li>Firebase Authentication processes your account ID, name, email address, profile photo, and sign-in provider.</li>
+            <li>We store your Firebase user ID and quiz choices: quiz ID, selected answer, and save time.</li>
+          </ul>
+          <p>We use this data only to sign you in and restore your quiz answers. We never receive your Google or GitHub password.</p>
+          <button
+            class="auth-privacy-close"
+            type="button"
+            popovertarget="auth-privacy-dialog"
+            popovertargetaction="hide"
+          >
+            Close
+          </button>
+        </div>
       </section>
 
       <label class="search-label" for="navigation-search">Find content</label>
