@@ -55,6 +55,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /getFirestore\(app\)/);
     assert.match(authScript, /'users', currentUser\.uid, 'quizAnswers', quizId/);
     assert.match(authScript, /serverTimestamp\(\)/);
+    assert.match(authScript, /\[Mock Interview Club\]\[Firebase\]/);
+    assert.match(authScript, /console\.error\(LOG_PREFIX/);
+    assert.match(authScript, /Quiz answer save failed/);
+    assert.match(authScript, /error\?\.code/);
     assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
     assert.match(style, /\.auth-panel \{/);
     assert.equal(result.quizzes, navigationQuizCount);

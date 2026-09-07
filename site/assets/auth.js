@@ -26,6 +26,21 @@ const firebaseConfig = {
   appId: '1:995203978364:web:7ec9a89b645148b09ce5f9',
 };
 
+const LOG_PREFIX = '[Mock Interview Club][Firebase]';
+
+function logInfo(message, details = {}) {
+  console.info(LOG_PREFIX, message, details);
+}
+
+function logError(operation, error, context = {}) {
+  console.error(LOG_PREFIX, operation, {
+    ...context,
+    code: error?.code ?? 'unknown',
+    message: error?.message ?? String(error),
+    stack: error?.stack,
+  }, error);
+}
+
 const root = document.querySelector('[data-auth-root]');
 
 if (root) {
@@ -43,6 +58,13 @@ if (root) {
   const quizAnswers = document.querySelector('.quiz-answers[data-quiz-id]');
   const quizSaveStatus = document.querySelector('[data-quiz-save-status]');
   let currentUser = null;
+
+  logInfo('Firebase initialized', {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    page: window.location.href,
+    quizId: quizAnswers?.dataset.quizId ?? null,
+  });
 
   const providers = {
     google: new GoogleAuthProvider(),
@@ -86,11 +108,14 @@ if (root) {
 
     setBusy(true);
     showStatus('Opening secure sign-in…');
+    logInfo('Starting sign-in', { provider: providerName });
 
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      logInfo('Sign-in completed', { provider: providerName, uid: result.user.uid });
       showStatus('');
     } catch (error) {
+      logError('Sign-in failed', error, { provider: providerName });
       showStatus(friendlyError(error));
     } finally {
       setBusy(false);
@@ -104,15 +129,20 @@ if (root) {
     }
 
     showQuizSaveStatus('Saving answer…');
+    const documentPath = `users/${currentUser.uid}/quizAnswers/${quizId}`;
+    logInfo('Saving quiz answer', { documentPath, quizId, answer });
 
     try {
       await setDoc(doc(database, 'users', currentUser.uid, 'quizAnswers', quizId), {
         selectedAnswer: answer,
         updatedAt: serverTimestamp(),
       });
+      logInfo('Quiz answer saved', { documentPath, quizId, answer });
       showQuizSaveStatus('Answer saved.');
-    } catch {
-      showQuizSaveStatus('Could not save the answer. Please try again.');
+    } catch (error) {
+      logError('Quiz answer save failed', error, { documentPath, quizId, answer });
+      const errorCode = error?.code ? ` (${error.code})` : '';
+      showQuizSaveStatus(`Could not save the answer${errorCode}. Check the browser console.`);
     }
   }
 
@@ -120,6 +150,9 @@ if (root) {
     if (!quizAnswers) return;
 
     showQuizSaveStatus('Loading your saved answer…');
+    const quizId = quizAnswers.dataset.quizId;
+    const documentPath = `users/${user.uid}/quizAnswers/${quizId}`;
+    logInfo('Loading saved quiz answer', { documentPath, quizId });
 
     try {
       const snapshot = await getDoc(doc(
@@ -127,23 +160,31 @@ if (root) {
         'users',
         user.uid,
         'quizAnswers',
-        quizAnswers.dataset.quizId,
+        quizId,
       ));
 
       if (!snapshot.exists()) {
+        logInfo('No saved quiz answer found', { documentPath, quizId });
         showQuizSaveStatus('Your answer will be saved automatically.');
         return;
       }
 
       document.dispatchEvent(new CustomEvent('quiz-answer-loaded', {
         detail: {
-          quizId: quizAnswers.dataset.quizId,
+          quizId,
           answer: snapshot.data().selectedAnswer,
         },
       }));
+      logInfo('Saved quiz answer restored', {
+        documentPath,
+        quizId,
+        answer: snapshot.data().selectedAnswer,
+      });
       showQuizSaveStatus('Saved answer restored.');
-    } catch {
-      showQuizSaveStatus('Could not load the saved answer.');
+    } catch (error) {
+      logError('Saved quiz answer load failed', error, { documentPath, quizId });
+      const errorCode = error?.code ? ` (${error.code})` : '';
+      showQuizSaveStatus(`Could not load the saved answer${errorCode}. Check the browser console.`);
     }
   }
 
@@ -151,7 +192,10 @@ if (root) {
     button.addEventListener('click', () => signIn(button.dataset.authProvider));
   }
 
-  document.addEventListener('quiz-answer-selected', (event) => saveQuizAnswer(event.detail));
+  document.addEventListener('quiz-answer-selected', (event) => {
+    logInfo('Quiz answer event received', event.detail);
+    saveQuizAnswer(event.detail);
+  });
 
   signOutButton?.addEventListener('click', async () => {
     setBusy(true);
@@ -159,20 +203,30 @@ if (root) {
 
     try {
       await signOut(auth);
+      logInfo('Sign-out completed');
       showStatus('');
-    } catch {
+    } catch (error) {
+      logError('Sign-out failed', error);
       showStatus('Could not sign out. Please try again.');
     } finally {
       setBusy(false);
     }
   });
 
-  setPersistence(auth, browserLocalPersistence).catch(() => {
-    showStatus('Your browser may not remember the login after this page closes.');
-  });
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => logInfo('Local authentication persistence enabled'))
+    .catch((error) => {
+      logError('Authentication persistence setup failed', error);
+      showStatus('Your browser may not remember the login after this page closes.');
+    });
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
+    logInfo('Authentication state changed', {
+      authenticated: Boolean(user),
+      uid: user?.uid ?? null,
+      providers: user?.providerData.map(({ providerId }) => providerId) ?? [],
+    });
     signedOutView.hidden = Boolean(user);
     signedInView.hidden = !user;
 
