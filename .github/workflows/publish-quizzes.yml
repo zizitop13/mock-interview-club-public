@@ -1,15 +1,7 @@
-name: Publish Telegram quizzes
+name: Publish Telegram quizzes (disabled)
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'quizzes/*/*.md'
-      - '.github/workflows/publish-quizzes.yml'
-      - 'scripts/quiz.js'
-      - 'scripts/publish-quizzes.js'
-  workflow_dispatch:
+# Disabled in favor of publish-quiz-links.yml. Kept for rollback/reference.
+on: []
 
 permissions:
   contents: write
