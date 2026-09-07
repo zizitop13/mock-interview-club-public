@@ -68,10 +68,10 @@
           <p>When you sign in with Google or GitHub:</p>
           <ul>
             <li>Firebase Authentication processes your account ID, name, email address, profile photo, and sign-in provider.</li>
-            <li>We store your Firebase user ID and quiz choices: quiz ID, selected answer, and save time.</li>
+            <li>We store your Firebase user ID, quiz choices, and optional quiz ratings such as Good, Hard, or Brilliant.</li>
             <li>GitHub Pages logs visitors' IP addresses for security purposes.</li>
           </ul>
-          <p>We use this data only to sign you in and restore your quiz answers. We never receive your Google or GitHub password.</p>
+          <p>We use this data only to sign you in, restore your quiz answers, and save quiz feedback. We never receive your Google or GitHub password.</p>
           <button
             class="auth-privacy-close"
             type="button"
@@ -108,7 +108,6 @@
             {% for quiz in topic.quizzes %}
               <div class="nav-item" data-nav-item data-search="{{ topic.title | downcase }} {{ quiz.title | downcase }}">
                 <a class="quiz-link" href="{{ quiz.quiz_url | relative_url }}">{{ quiz.title }}</a>
-                <a class="explanation-link" href="{{ quiz.explanation_url | relative_url }}">Explanation</a>
               </div>
             {% endfor %}
           </section>
