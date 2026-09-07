@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedInAs(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/quizAnswers/{quizId} {
+      allow read: if signedInAs(userId);
+      allow create: if signedInAs(userId)
+        && request.resource.data.keys().hasOnly(['selectedAnswer', 'updatedAt'])
+        && request.resource.data.selectedAnswer in ['a', 'b', 'c', 'd']
+        && request.resource.data.updatedAt == request.time;
+      allow update, delete: if false;
+    }
+
+    match /quizFeedback/{quizId}/votes/{userId} {
+      allow read: if signedInAs(userId);
+      allow create, update: if signedInAs(userId)
+        && request.resource.data.keys().hasOnly(['ratings', 'updatedAt'])
+        && request.resource.data.ratings is list
+        && request.resource.data.ratings.size() >= 1
+        && request.resource.data.ratings.size() <= 7
+        && request.resource.data.ratings.hasOnly([
+          'code-smells',
+          'good',
+          'hard',
+          'too-easy',
+          'too-hard',
+          'boring',
+          'brilliant'
+        ])
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+  }
+}
