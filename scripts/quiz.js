@@ -292,27 +292,35 @@ export function markPublished(source, filePath) {
   return source.replace(/^(status:\s*)draft\s*$/m, '$1published');
 }
 
-export function createExplanationUrl(quiz, siteBaseUrl) {
+function createSitePageUrl(filePath, siteBaseUrl) {
   let baseUrl;
 
   try {
     baseUrl = new URL(`${siteBaseUrl.replace(/\/+$/, '')}/`);
   } catch {
-    fail(quiz.filePath, 'QUIZ_SITE_BASE_URL must be a valid HTTP or HTTPS URL');
+    fail(filePath, 'QUIZ_SITE_BASE_URL must be a valid HTTP or HTTPS URL');
   }
 
   if (!['http:', 'https:'].includes(baseUrl.protocol)) {
-    fail(quiz.filePath, 'QUIZ_SITE_BASE_URL must use HTTP or HTTPS');
+    fail(filePath, 'QUIZ_SITE_BASE_URL must use HTTP or HTTPS');
   }
 
-  const explanationPath = quiz.explanationFilePath ?? quiz.filePath.replace(/\.md$/, '-explain.md');
-  const pagePath = explanationPath
+  const pagePath = filePath
     .replace(/\.md$/, '')
     .split('/')
     .map((segment) => encodeURIComponent(segment))
     .join('/');
 
   return new URL(`${pagePath}/`, baseUrl).toString();
+}
+
+export function createQuizUrl(quiz, siteBaseUrl) {
+  return createSitePageUrl(quiz.filePath, siteBaseUrl);
+}
+
+export function createExplanationUrl(quiz, siteBaseUrl) {
+  const explanationPath = quiz.explanationFilePath ?? quiz.filePath.replace(/\.md$/, '-explain.md');
+  return createSitePageUrl(explanationPath, siteBaseUrl);
 }
 
 export function createTelegramExplanation(shortExplanation, explanationUrl) {
