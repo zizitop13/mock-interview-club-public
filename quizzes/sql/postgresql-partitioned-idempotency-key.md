@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-partitioned-idempotency-key
-status: draft
+status: published
 ---
 
 ## Question
