@@ -38,10 +38,36 @@ function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explan
     '<section class="answer-result" data-answer-result hidden aria-live="polite">',
     '  <strong class="answer-result-status" data-answer-status></strong>',
     `  <p>${escapeHtml(explanation)}</p>`,
-    `  <a class="answer-explanation-link" href="{{ '${explanationUrl}' | relative_url }}">Read the full explanation →</a>`,
+    `  <a class="answer-explanation-link" data-explanation-link href="{{ '${explanationUrl}' | relative_url }}" hidden>Read the full explanation →</a>`,
     '  <p class="quiz-save-status" data-quiz-save-status>Sign in to save your answer.</p>',
     '</section>', '',
   ].join('\n')).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
+}
+
+function formatQuizFeedback(quizId) {
+  const ratings = [
+    ['code-smells', 'Code smells'],
+    ['good', 'Good'],
+    ['hard', 'Hard'],
+    ['too-easy', 'Too easy'],
+    ['too-hard', 'Too hard'],
+    ['boring', 'Boring'],
+    ['brilliant', 'Brilliant'],
+  ];
+  const choices = ratings.map(([value, label]) =>
+    `  <label class="quiz-feedback-choice"><input type="checkbox" value="${value}" data-feedback-rating> <span>${label}</span></label>`
+  ).join('\n');
+  return [
+    '<section class="quiz-feedback" data-quiz-feedback data-quiz-id="' + escapeHtml(quizId) + '">',
+    '  <h2>Rate this quiz</h2>',
+    '  <p>Select every label that applies.</p>',
+    '  <div class="quiz-feedback-choices">',
+    choices,
+    '  </div>',
+    '  <button class="quiz-feedback-submit" type="button" data-feedback-submit disabled>Save feedback</button>',
+    '  <p class="quiz-feedback-status" data-feedback-status role="status" aria-live="polite">Sign in to rate this quiz.</p>',
+    '</section>',
+  ].join('\n');
 }
 
 function pageFrontmatter({ title, topic, kind, url, pairedUrl = '' }) {
@@ -96,10 +122,10 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     ]);
     const destination = path.join(outputDirectory, 'quizzes', quiz.topic);
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, pairedUrl: explanationUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`))}\n`);
-    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`))}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n\n${formatQuizFeedback(`${quiz.topic}--${quiz.slug}`)}\n`);
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
-    topics.get(quiz.topic).quizzes.push({ title: quizTitle, quiz_url: quizUrl, explanation_url: explanationUrl });
+    topics.get(quiz.topic).quizzes.push({ title: quizTitle, quiz_url: quizUrl });
   }
 
   const labTracks = new Map();
@@ -126,8 +152,8 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
   await writeFile(path.join(outputDirectory, '_data', 'navigation.json'), `${JSON.stringify(navigation, null, 2)}\n`);
 
   const labSections = navigation.lab_tracks.map((track) => `### ${track.title}\n\n${track.labs.map((lab) => `- [${lab.title}]({{ '${lab.url}' | relative_url }})`).join('\n')}`);
-  const quizSections = navigation.topics.map((topic) => `### ${topic.title}\n\n${topic.quizzes.map((quiz) => `- [${quiz.title}]({{ '${quiz.quiz_url}' | relative_url }}) — [detailed explanation]({{ '${quiz.explanation_url}' | relative_url }})`).join('\n')}`);
-  const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions, then open the detailed explanation.', '', ...quizSections, ''].join('\n');
+  const quizSections = navigation.topics.map((topic) => `### ${topic.title}\n\n${topic.quizzes.map((quiz) => `- [${quiz.title}]({{ '${quiz.quiz_url}' | relative_url }})`).join('\n')}`);
+  const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions. Sign in and answer to reveal each detailed explanation.', '', ...quizSections, ''].join('\n');
   await writeFile(path.join(outputDirectory, 'index.md'), index);
   return { outputDirectory, quizzes: quizzes.length, topics: navigation.topics.length, labs: labs.length, labTracks: navigation.lab_tracks.length };
 }

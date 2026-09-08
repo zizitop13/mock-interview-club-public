@@ -56,6 +56,9 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /onAuthStateChanged\(auth/);
     assert.match(authScript, /getFirestore\(app\)/);
     assert.match(authScript, /'users', currentUser\.uid, 'quizAnswers', quizId/);
+    assert.match(authScript, /'quizFeedback', feedback\.dataset\.quizId, 'votes', user\.uid/);
+    assert.match(authScript, /showExplanationLink\(true\)/);
+    assert.match(authScript, /data-feedback-submit/);
     assert.match(authScript, /serverTimestamp\(\)/);
     assert.doesNotMatch(authScript, /console\.(info|error)|LOG_PREFIX|logInfo|logError/);
     assert.match(authScript, /error\?\.code/);
@@ -85,6 +88,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const topicTitles = navigation.topics.map(({ title }) => title);
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
+    assert.match(explanation, /data-quiz-feedback/);
+    assert.equal((explanation.match(/data-feedback-rating/g) ?? []).length, 7);
+    assert.match(explanation, />Code smells</);
+    assert.match(explanation, />Brilliant</);
+    assert.doesNotMatch(layout, /class="explanation-link"/);
     assert.match(explanation, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.doesNotMatch(explanation, /```mermaid/);
     assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer value="[a-d]">/g) ?? []).length, 4);
@@ -96,7 +104,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal((quiz.match(/data-correct="false"/g) ?? []).length, 3);
     assert.match(quiz, /data-answer-result hidden/);
     assert.match(quiz, /Another writer can modify or remove the entry/);
-    assert.match(quiz, /Read the full explanation/);
+    assert.match(quiz, /data-explanation-link[^>]+hidden/);
+    assert.doesNotMatch(quiz, /paired_url: "\/quizzes\/java\/read-write-lock-downgrade-explain\/"/);
     assert.doesNotMatch(quiz, /<details>/);
     assert.doesNotMatch(quiz, /^a\. /m);
     assert.match(explanation, /data-copy-diagram/);

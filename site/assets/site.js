@@ -64,10 +64,6 @@ for (const answers of document.querySelectorAll('.quiz-answers')) {
 
     if (event.target.checked && answers.dataset.quizId) {
       setQuizAnswerLocked(answers, true);
-      console.info('[Mock Interview Club][Quiz]', 'Answer selected', {
-        quizId: answers.dataset.quizId,
-        answer: event.target.value,
-      });
       document.dispatchEvent(new CustomEvent('quiz-answer-selected', {
         detail: {
           quizId: answers.dataset.quizId,
@@ -79,7 +75,6 @@ for (const answers of document.querySelectorAll('.quiz-answers')) {
 }
 
 document.addEventListener('quiz-answer-loaded', (event) => {
-  console.info('[Mock Interview Club][Quiz]', 'Saved answer event received', event.detail);
   for (const answers of document.querySelectorAll('.quiz-answers[data-quiz-id]')) {
     if (answers.dataset.quizId !== event.detail?.quizId) continue;
 

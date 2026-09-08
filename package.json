@@ -10,6 +10,7 @@
     "validate": "node scripts/validate-quizzes.js",
     "test": "node --test",
     "build:site": "node scripts/build-site.js",
-    "publish:quizzes": "node scripts/publish-quizzes.js"
+    "publish:quizzes": "node scripts/publish-quizzes.js",
+    "publish:quiz-links": "node scripts/publish-quiz-links.js"
   }
 }
