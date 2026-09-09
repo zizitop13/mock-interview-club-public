@@ -39,7 +39,7 @@ function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explan
     '  <strong class="answer-result-status" data-answer-status></strong>',
     `  <p>${escapeHtml(explanation)}</p>`,
     `  <a class="answer-explanation-link" data-explanation-link href="{{ '${explanationUrl}' | relative_url }}" hidden>Read the full explanation →</a>`,
-    '  <p class="quiz-save-status" data-quiz-save-status>Sign in to save your answer.</p>',
+    '  <p class="quiz-save-status" data-quiz-save-status><button class="inline-sign-in-link" type="button" popovertarget="auth-sign-in-dialog">Sign in</button> to save your answer.</p>',
     '</section>', '',
   ].join('\n')).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
 }
@@ -71,7 +71,7 @@ function formatQuizFeedback(quizId) {
     '  <textarea class="quiz-feedback-comment" id="quiz-feedback-comment-' + escapeHtml(quizId) + '" data-feedback-comment maxlength="1000" rows="5" placeholder="What should be improved? Please keep it concise and specific."></textarea>',
     '  <p class="quiz-feedback-limit">Up to 1,000 characters.</p>',
     '  <button class="quiz-feedback-submit" type="button" data-feedback-submit disabled>Save feedback</button>',
-    '  <p class="quiz-feedback-status" data-feedback-status role="status" aria-live="polite">Sign in to rate this quiz.</p>',
+    '  <p class="quiz-feedback-status" data-feedback-status role="status" aria-live="polite"><button class="inline-sign-in-link" type="button" popovertarget="auth-sign-in-dialog">Sign in</button> to rate this quiz.</p>',
     '</section>',
   ].join('\n');
 }

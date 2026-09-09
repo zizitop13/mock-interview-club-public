@@ -81,6 +81,36 @@
             Close
           </button>
         </div>
+
+        <div
+          class="auth-privacy-dialog auth-login-dialog"
+          id="auth-sign-in-dialog"
+          popover
+          role="dialog"
+          aria-labelledby="auth-sign-in-title"
+        >
+          <h2 id="auth-sign-in-title">Sign in to Mock Interview Club</h2>
+          <p>Choose a provider to save your quiz answers and feedback.</p>
+          <div class="auth-actions">
+            <button class="auth-button" type="button" data-auth-provider="google">
+              <span class="auth-provider-mark" aria-hidden="true">G</span>
+              Google
+            </button>
+            <button class="auth-button" type="button" data-auth-provider="github">
+              <span class="auth-provider-mark" aria-hidden="true">GH</span>
+              GitHub
+            </button>
+          </div>
+          <p class="auth-status" data-auth-dialog-status role="status" aria-live="polite" hidden></p>
+          <button
+            class="auth-privacy-close"
+            type="button"
+            popovertarget="auth-sign-in-dialog"
+            popovertargetaction="hide"
+          >
+            Close
+          </button>
+        </div>
       </section>
 
       <label class="search-label" for="navigation-search">Find content</label>

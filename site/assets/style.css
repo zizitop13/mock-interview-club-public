@@ -795,3 +795,29 @@ a:hover {
   color: var(--muted);
   font-size: 0.86rem;
 }
+
+
+.auth-login-dialog {
+  width: min(420px, calc(100vw - 32px));
+}
+
+.auth-login-dialog .auth-actions {
+  margin-bottom: 18px;
+}
+
+.inline-sign-in-link {
+  padding: 0;
+  border: 0;
+  color: #8bc7ff;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.inline-sign-in-link:hover {
+  color: #b8dcff;
+}

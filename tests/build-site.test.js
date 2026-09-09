@@ -46,14 +46,18 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       .reduce((total, track) => total + track.labs.length, 0);
 
     assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}\?v={{ site\.github\.build_revision/);
-    assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 2);
+    assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 4);
     assert.match(layout, /data-auth-provider="google"/);
     assert.match(layout, /data-auth-provider="github"/);
+    assert.match(layout, /id="auth-sign-in-dialog"[\s\S]*?data-auth-provider="google"[\s\S]*?data-auth-provider="github"/);
     assert.match(layout, /GitHub Pages logs visitors' IP addresses for security purposes/);
     assert.match(layout, /written feedback you submit/);
     assert.match(authScript, /new GoogleAuthProvider\(\)/);
     assert.match(authScript, /new GithubAuthProvider\(\)/);
     assert.match(authScript, /signInWithPopup\(auth, provider\)/);
+    assert.match(authScript, /showSignInPrompt/);
+    assert.match(authScript, /popovertarget.*auth-sign-in-dialog/);
+    assert.match(authScript, /loginDialog\?\.hidePopover\?\.\(\)/);
     assert.match(authScript, /onAuthStateChanged\(auth/);
     assert.match(authScript, /getFirestore\(app\)/);
     assert.match(authScript, /'users', currentUser\.uid, 'quizAnswers', quizId/);
@@ -78,6 +82,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(siteScript, /quiz-answer-save-failed/);
     assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
     assert.match(style, /\.auth-panel \{/);
+    assert.match(style, /\.inline-sign-in-link \{/);
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, navigation.topics.length);
@@ -105,6 +110,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(explanation, />Wrong answer</);
     assert.match(explanation, />Incorrect question</);
     assert.match(explanation, /data-feedback-comment maxlength="1000"/);
+    assert.match(explanation, /data-feedback-status[\s\S]*?popovertarget="auth-sign-in-dialog"/);
     assert.match(explanation, /Up to 1,000 characters/);
     assert.doesNotMatch(layout, /class="explanation-link"/);
     assert.match(explanation, /https:\/\/mermaid\.ink\/svg\/pako:/);
@@ -112,7 +118,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer value="[a-d]">/g) ?? []).length, 4);
     assert.equal((quiz.match(/<div class="quiz-answer-row" data-correct="(?:true|false)">/g) ?? []).length, 4);
     assert.match(quiz, /<div class="quiz-answers" data-quiz-id="java--read-write-lock-downgrade">/);
-    assert.match(quiz, /data-quiz-save-status/);
+    assert.match(quiz, /data-quiz-save-status[\s\S]*?popovertarget="auth-sign-in-dialog"/);
     assert.match(quiz, /<label class="quiz-answer">[\s\S]*?<strong>a\.<\/strong>/);
     assert.equal((quiz.match(/data-correct="true"/g) ?? []).length, 1);
     assert.equal((quiz.match(/data-correct="false"/g) ?? []).length, 3);

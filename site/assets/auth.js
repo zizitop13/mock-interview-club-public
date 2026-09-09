@@ -39,6 +39,8 @@ if (root) {
   const email = root.querySelector('[data-auth-email]');
   const avatar = root.querySelector('[data-auth-avatar]');
   const status = root.querySelector('[data-auth-status]');
+  const dialogStatus = root.querySelector('[data-auth-dialog-status]');
+  const loginDialog = root.querySelector('#auth-sign-in-dialog');
   const authButtons = [...root.querySelectorAll('[data-auth-provider]')];
   const signOutButton = root.querySelector('[data-auth-sign-out]');
   const quizAnswers = document.querySelector('.quiz-answers[data-quiz-id]');
@@ -67,8 +69,11 @@ if (root) {
   }
 
   function showStatus(message = '') {
-    status.textContent = message;
-    status.hidden = message === '';
+    for (const target of [status, dialogStatus]) {
+      if (!target) continue;
+      target.textContent = message;
+      target.hidden = message === '';
+    }
   }
 
   function showQuizSaveStatus(message) {
@@ -81,6 +86,24 @@ if (root) {
 
   function showFeedbackStatus(message) {
     if (feedbackStatus) feedbackStatus.textContent = message;
+  }
+
+  function showSignInPrompt(target, action) {
+    if (!target) return;
+    const button = document.createElement('button');
+    button.className = 'inline-sign-in-link';
+    button.type = 'button';
+    button.textContent = 'Sign in';
+    button.setAttribute('popovertarget', 'auth-sign-in-dialog');
+    target.replaceChildren(button, ` ${action}`);
+  }
+
+  function showQuizSignInPrompt() {
+    showSignInPrompt(quizSaveStatus, 'to save your answer.');
+  }
+
+  function showFeedbackSignInPrompt() {
+    showSignInPrompt(feedbackStatus, 'to rate this quiz.');
   }
 
   function readFeedback() {
@@ -155,6 +178,7 @@ if (root) {
     showStatus('Opening secure sign-in…');
     try {
       await signInWithPopup(auth, provider);
+      loginDialog?.hidePopover?.();
       showStatus('');
     } catch (error) {
       showStatus(friendlyError(error));
@@ -165,7 +189,7 @@ if (root) {
 
   async function saveQuizAnswer({ quizId, answer }) {
     if (!currentUser) {
-      showQuizSaveStatus('Sign in to save this answer.');
+      showQuizSignInPrompt();
       showExplanationLink(false);
       allowQuizRetry(quizId);
       return;
@@ -310,14 +334,15 @@ if (root) {
     signedInView.hidden = !user;
 
     if (!user) {
-      showQuizSaveStatus('Sign in to save your answer.');
+      showQuizSignInPrompt();
       showExplanationLink(false);
       setFeedbackEnabled(false);
       clearFeedback();
-      showFeedbackStatus('Sign in to rate this quiz.');
+      showFeedbackSignInPrompt();
       return;
     }
 
+    loginDialog?.hidePopover?.();
     name.textContent = user.displayName || user.email || 'Signed in';
     email.textContent = user.email && user.email !== name.textContent ? user.email : '';
     email.hidden = email.textContent === '';
