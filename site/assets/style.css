@@ -734,6 +734,42 @@ a:hover {
   background: var(--accent-soft);
 }
 
+.quiz-feedback-comment-label {
+  display: block;
+  margin: 18px 0 7px;
+  font-weight: 750;
+}
+
+.quiz-feedback-comment {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 112px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline: none;
+  color: var(--text);
+  background: var(--background);
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.quiz-feedback-comment:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.quiz-feedback-comment:disabled {
+  opacity: 0.55;
+}
+
+.quiz-feedback-limit {
+  margin: 6px 0 16px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .quiz-feedback-submit {
   padding: 9px 14px;
   border: 1px solid var(--accent);
