@@ -18,6 +18,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const authScript = await readFile(path.join(outputDirectory, 'assets', 'auth.js'), 'utf8');
     const siteScript = await readFile(path.join(outputDirectory, 'assets', 'site.js'), 'utf8');
     const style = await readFile(path.join(outputDirectory, 'assets', 'style.css'), 'utf8');
+    const index = await readFile(path.join(outputDirectory, 'index.md'), 'utf8');
     const explanation = await readFile(
       path.join(outputDirectory, 'quizzes', 'kafka', 'partition-count-key-ordering-explain.md'),
       'utf8',
@@ -64,6 +65,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /'quizStats', quizId, 'options', answer/);
     assert.match(authScript, /'statistics', 'counted'/);
     assert.match(authScript, /getDocs\(collection\(database, 'quizStats'/);
+    assert.match(authScript, /getDocs\(collection\(database, 'users', user\.uid, 'quizAnswers'/);
+    assert.match(authScript, /sessionStorage\.setItem\(quizAnswerCacheKey\(user\)/);
+    assert.match(authScript, /renderQuizAnswerIndicators\(answers\)/);
+    assert.match(authScript, /Answered correctly/);
+    assert.match(authScript, /Answered incorrectly/);
     assert.match(authScript, /'users', user\.uid, 'quizAnswers', quizId/);
     assert.match(authScript, /'quizFeedback', feedback\.dataset\.quizId, 'votes', user\.uid/);
     assert.match(authScript, /showExplanationLink\(true\)/);
@@ -89,12 +95,19 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(style, /\.inline-sign-in-link \{/);
     assert.match(style, /\.quiz-statistics \{/);
     assert.match(style, /\.quiz-statistics-track \{/);
+    assert.match(style, /\.quiz-answer-indicator\.is-correct \{/);
+    assert.match(style, /\.quiz-answer-indicator\.is-incorrect \{/);
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, navigation.topics.length);
     assert.equal(result.labs, navigationLabCount);
     assert.equal(result.labTracks, 2);
     assert.deepEqual(navigation.lab_tracks.map(({ slug }) => slug), ['coding', 'design']);
+    assert.ok(navigation.topics.every((topic) => topic.quizzes.every((item) => item.id && item.correct_answer)));
+    assert.equal((index.match(/data-quiz-list-item/g) ?? []).length, navigationQuizCount);
+    assert.equal((index.match(/data-quiz-answer-indicator/g) ?? []).length, navigationQuizCount);
+    assert.match(index, /class="quiz-index-item"[^>]+data-correct-answer="[a-l]"/);
+    assert.match(layout, /class="nav-item quiz-progress-item"[\s\S]*?data-quiz-id="{{ quiz\.id }}"[\s\S]*?data-correct-answer="{{ quiz\.correct_answer }}"/);
     assert.match(licenseServerLab, /permalink: "\/labs\/coding\/floating-license-server\/"/);
     assert.match(licenseServerLab, /paired_url: "\/labs\/coding\/floating-license-server-solution\/"/);
     assert.match(licenseServerLab, /class="stage-navigation"/);

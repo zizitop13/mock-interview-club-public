@@ -318,6 +318,47 @@ a:hover {
   background: var(--panel-soft);
 }
 
+.quiz-progress-item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+}
+
+.quiz-answer-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.quiz-answer-indicator[hidden] {
+  display: none;
+}
+
+.quiz-answer-indicator.is-correct {
+  background: #39c987;
+  box-shadow: 0 0 0 3px rgba(57, 201, 135, 0.14);
+}
+
+.quiz-answer-indicator.is-incorrect {
+  background: #ff6577;
+  box-shadow: 0 0 0 3px rgba(255, 101, 119, 0.14);
+}
+
+.quiz-index-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+.quiz-index-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0.5em 0;
+}
+
 .quiz-link,
 .explanation-link {
   display: block;

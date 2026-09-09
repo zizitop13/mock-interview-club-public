@@ -30,6 +30,7 @@ const firebaseConfig = {
 };
 
 const MAX_FEEDBACK_COMMENT_LENGTH = 1000;
+const QUIZ_ANSWER_CACHE_PREFIX = 'mock-interview-club:quiz-answers:';
 const root = document.querySelector('[data-auth-root]');
 
 if (root) {
@@ -52,6 +53,7 @@ if (root) {
   const quizStatistics = document.querySelector('[data-quiz-statistics][data-quiz-id]');
   const quizStatisticsTotal = quizStatistics?.querySelector('[data-quiz-statistics-total]');
   const quizStatisticRows = [...(quizStatistics?.querySelectorAll('[data-quiz-stat-option]') ?? [])];
+  const quizListItems = [...document.querySelectorAll('[data-quiz-list-item][data-quiz-id][data-correct-answer]')];
   const feedback = document.querySelector('[data-quiz-feedback][data-quiz-id]');
   const feedbackSubmit = feedback?.querySelector('[data-feedback-submit]');
   const feedbackStatus = feedback?.querySelector('[data-feedback-status]');
@@ -92,6 +94,93 @@ if (root) {
 
   function hideQuizStatistics() {
     if (quizStatistics) quizStatistics.hidden = true;
+  }
+
+  function clearQuizAnswerIndicators() {
+    for (const item of quizListItems) {
+      const indicator = item.querySelector('[data-quiz-answer-indicator]');
+      if (!indicator) continue;
+      indicator.hidden = true;
+      indicator.classList.remove('is-correct', 'is-incorrect');
+      indicator.removeAttribute('aria-label');
+      indicator.removeAttribute('title');
+    }
+  }
+
+  function renderQuizAnswerIndicators(answers) {
+    clearQuizAnswerIndicators();
+    for (const item of quizListItems) {
+      const selectedAnswer = answers.get(item.dataset.quizId);
+      if (!selectedAnswer) continue;
+
+      const indicator = item.querySelector('[data-quiz-answer-indicator]');
+      if (!indicator) continue;
+      const correct = selectedAnswer === item.dataset.correctAnswer;
+      const label = correct ? 'Answered correctly' : 'Answered incorrectly';
+      indicator.classList.add(correct ? 'is-correct' : 'is-incorrect');
+      indicator.setAttribute('aria-label', label);
+      indicator.setAttribute('title', label);
+      indicator.hidden = false;
+    }
+  }
+
+  function quizAnswerCacheKey(user) {
+    return `${QUIZ_ANSWER_CACHE_PREFIX}${user.uid}`;
+  }
+
+  function readQuizAnswerCache(user) {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(quizAnswerCacheKey(user)) ?? 'null');
+      if (!cached?.complete || typeof cached.answers !== 'object') return null;
+      return new Map(Object.entries(cached.answers).filter(([, answer]) => /^[a-l]$/.test(answer)));
+    } catch {
+      return null;
+    }
+  }
+
+  function writeQuizAnswerCache(user, answers) {
+    try {
+      sessionStorage.setItem(quizAnswerCacheKey(user), JSON.stringify({
+        complete: true,
+        answers: Object.fromEntries(answers),
+      }));
+    } catch {
+      // The indicators still work when session storage is unavailable.
+    }
+  }
+
+  function rememberQuizAnswer(user, quizId, answer) {
+    const cached = readQuizAnswerCache(user);
+    if (!cached) return;
+    cached.set(quizId, answer);
+    writeQuizAnswerCache(user, cached);
+    renderQuizAnswerIndicators(cached);
+  }
+
+  async function loadQuizAnswerIndicators(user) {
+    if (quizListItems.length === 0) return;
+    clearQuizAnswerIndicators();
+
+    const cached = readQuizAnswerCache(user);
+    if (cached) {
+      renderQuizAnswerIndicators(cached);
+      return;
+    }
+
+    try {
+      const snapshot = await getDocs(collection(database, 'users', user.uid, 'quizAnswers'));
+      if (currentUser?.uid !== user.uid) return;
+
+      const answers = new Map();
+      for (const answer of snapshot.docs) {
+        const selectedAnswer = answer.data().selectedAnswer;
+        if (/^[a-l]$/.test(selectedAnswer)) answers.set(answer.id, selectedAnswer);
+      }
+      writeQuizAnswerCache(user, answers);
+      renderQuizAnswerIndicators(answers);
+    } catch {
+      if (currentUser?.uid === user.uid) clearQuizAnswerIndicators();
+    }
   }
 
   function renderQuizStatistics(counts) {
@@ -294,6 +383,7 @@ if (root) {
       if (currentUser?.uid !== user.uid) return;
       showQuizSaveStatus('Answer saved. Your choice is now locked.');
       showExplanationLink(true);
+      rememberQuizAnswer(user, quizId, answer);
       await loadQuizStatistics(user, quizId);
     } catch (error) {
       const errorCode = error?.code ? ` (${error.code})` : '';
@@ -323,6 +413,7 @@ if (root) {
       }));
       showQuizSaveStatus('Saved answer restored. Your choice is locked.');
       showExplanationLink(true);
+      rememberQuizAnswer(user, quizId, snapshot.data().selectedAnswer);
       await loadQuizStatistics(user, quizId);
       return true;
     } catch (error) {
@@ -433,6 +524,7 @@ if (root) {
       showQuizSignInPrompt();
       showExplanationLink(false);
       hideQuizStatistics();
+      clearQuizAnswerIndicators();
       setFeedbackEnabled(false);
       clearFeedback();
       showFeedbackSignInPrompt();
@@ -454,5 +546,6 @@ if (root) {
 
     restoreQuizAnswer(user);
     restoreFeedback(user);
+    loadQuizAnswerIndicators(user);
   });
 }

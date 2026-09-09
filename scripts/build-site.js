@@ -154,7 +154,12 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`))}\n`);
     await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n\n${formatQuizFeedback(`${quiz.topic}--${quiz.slug}`)}\n`);
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
-    topics.get(quiz.topic).quizzes.push({ title: quizTitle, quiz_url: quizUrl });
+    topics.get(quiz.topic).quizzes.push({
+      id: `${quiz.topic}--${quiz.slug}`,
+      title: quizTitle,
+      quiz_url: quizUrl,
+      correct_answer: quiz.correctAnswer,
+    });
   }
 
   const labTracks = new Map();
@@ -181,7 +186,18 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
   await writeFile(path.join(outputDirectory, '_data', 'navigation.json'), `${JSON.stringify(navigation, null, 2)}\n`);
 
   const labSections = navigation.lab_tracks.map((track) => `### ${track.title}\n\n${track.labs.map((lab) => `- [${lab.title}]({{ '${lab.url}' | relative_url }})`).join('\n')}`);
-  const quizSections = navigation.topics.map((topic) => `### ${topic.title}\n\n${topic.quizzes.map((quiz) => `- [${quiz.title}]({{ '${quiz.quiz_url}' | relative_url }})`).join('\n')}`);
+  const quizSections = navigation.topics.map((topic) => [
+    `### ${topic.title}`,
+    '',
+    '<ul class="quiz-index-list">',
+    ...topic.quizzes.map((quiz) => [
+      `  <li class="quiz-index-item" data-quiz-list-item data-quiz-id="${escapeHtml(quiz.id)}" data-correct-answer="${escapeHtml(quiz.correct_answer)}">`,
+      '    <span class="quiz-answer-indicator" data-quiz-answer-indicator role="img" hidden></span>',
+      `    <a href="{{ '${quiz.quiz_url}' | relative_url }}">${escapeHtml(quiz.title)}</a>`,
+      '  </li>',
+    ].join('\n')),
+    '</ul>',
+  ].join('\n'));
   const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions. Sign in and answer to reveal each detailed explanation.', '', ...quizSections, ''].join('\n');
   await writeFile(path.join(outputDirectory, 'index.md'), index);
   return { outputDirectory, quizzes: quizzes.length, topics: navigation.topics.length, labs: labs.length, labTracks: navigation.lab_tracks.length };

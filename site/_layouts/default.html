@@ -136,7 +136,15 @@
           <section class="topic" data-topic>
             <h2>{{ topic.title }}</h2>
             {% for quiz in topic.quizzes %}
-              <div class="nav-item" data-nav-item data-search="{{ topic.title | downcase }} {{ quiz.title | downcase }}">
+              <div
+                class="nav-item quiz-progress-item"
+                data-nav-item
+                data-quiz-list-item
+                data-quiz-id="{{ quiz.id }}"
+                data-correct-answer="{{ quiz.correct_answer }}"
+                data-search="{{ topic.title | downcase }} {{ quiz.title | downcase }}"
+              >
+                <span class="quiz-answer-indicator" data-quiz-answer-indicator role="img" hidden></span>
                 <a class="quiz-link" href="{{ quiz.quiz_url | relative_url }}">{{ quiz.title }}</a>
               </div>
             {% endfor %}
