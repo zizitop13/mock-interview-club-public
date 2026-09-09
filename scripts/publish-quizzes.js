@@ -8,6 +8,7 @@ import {
   createDiagramPayload,
   createExplanationUrl,
   createPollPayload,
+  createQuizUrl,
   loadQuizzes,
   markPublished,
 } from './quiz.js';
@@ -94,7 +95,8 @@ export async function publishQuizzes({
       await callTelegram('sendPhoto', diagram, { token, fetchImplementation });
     }
 
-    const contextMessage = createContextMessage(quiz, chatId, messageThreadId);
+    const quizUrl = createQuizUrl(quiz, siteBaseUrl);
+    const contextMessage = createContextMessage(quiz, chatId, messageThreadId, quizUrl);
 
     if (contextMessage) {
       await callTelegram('sendMessage', contextMessage, { token, fetchImplementation });

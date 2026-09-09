@@ -1,14 +1,7 @@
-name: Publish Telegram quiz links
+name: Publish Telegram quiz links (disabled)
 
+# Kept for reference. The Telegram quiz poll workflow is active instead.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'quizzes/*/*.md'
-      - '.github/workflows/publish-quiz-links.yml'
-      - 'scripts/quiz.js'
-      - 'scripts/publish-quiz-links.js'
   workflow_dispatch:
 
 permissions:
@@ -20,6 +13,7 @@ concurrency:
 
 jobs:
   publish:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

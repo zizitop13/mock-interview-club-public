@@ -209,6 +209,20 @@ test('does not create a context message for a plain question', () => {
   assert.equal(createContextMessage(quiz, '@mockingbird'), null);
 });
 
+test('adds a website link to the question message', () => {
+  const source = fixture.replace(/\n```java\n[\s\S]*?```\n/, '\n');
+  const quiz = parseQuiz(source, fixturePath);
+  const message = createContextMessage(
+    quiz,
+    '@mockingbird',
+    undefined,
+    'https://example.test/mock-interview-club-public/quizzes/java/read-write-lock-downgrade/',
+  );
+
+  assert.match(message.text, /What is wrong with this code/);
+  assert.match(message.text, /<a href="https:\/\/example\.test\/mock-interview-club-public\/quizzes\/java\/read-write-lock-downgrade\/">Answer on the website →<\/a>/);
+});
+
 test('marks a draft as published exactly once', () => {
   const published = markPublished(fixture, fixturePath);
 

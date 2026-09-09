@@ -62,6 +62,14 @@ test('pushes the consumed marker before sending context and poll', async () => {
           assert.ok([...payload.explanation].length <= 200);
         }
 
+        if (url.endsWith('/sendMessage')) {
+          const payload = JSON.parse(request.body);
+          assert.match(
+            payload.text,
+            /<a href="https:\/\/example\.test\/mock-interview-club-public\/quizzes\/java\/read-write-lock-downgrade\/">Answer on the website →<\/a>/,
+          );
+        }
+
         return telegramSuccess(42);
       },
     });

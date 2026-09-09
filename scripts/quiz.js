@@ -355,8 +355,8 @@ export function createPollPayload(quiz, chatId, messageThreadId, explanationUrl)
   };
 }
 
-export function createContextMessage(quiz, chatId, messageThreadId) {
-  if (quiz.contextBody === quiz.question) {
+export function createContextMessage(quiz, chatId, messageThreadId, quizUrl) {
+  if (quiz.contextBody === quiz.question && !quizUrl) {
     return null;
   }
 
@@ -365,12 +365,16 @@ export function createContextMessage(quiz, chatId, messageThreadId) {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 
-  const text = escaped.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_match, language, code) => {
+  const formattedContext = escaped.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_match, language, code) => {
     const className = language ? ` class="language-${language}"` : '';
     return `<pre><code${className}>${code.replace(/\n$/, '')}</code></pre>`;
   });
+  const siteLink = quizUrl
+    ? `<a href="${quizUrl.replaceAll('&', '&amp;').replaceAll('"', '&quot;')}">Answer on the website →</a>`
+    : '';
+  const text = [formattedContext, siteLink].filter(Boolean).join('\n\n');
 
-  if (characterCount(quiz.contextBody) > 4096) {
+  if (characterCount([quiz.contextBody, siteLink ? 'Answer on the website →' : ''].filter(Boolean).join('\n\n')) > 4096) {
     fail(quiz.filePath, 'supporting Telegram message exceeds 4096 characters');
   }
 
