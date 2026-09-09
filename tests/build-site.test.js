@@ -61,6 +61,12 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /showExplanationLink\(true\)/);
     assert.match(authScript, /data-feedback-submit/);
     assert.match(authScript, /data-feedback-comment/);
+    assert.match(authScript, /updateFeedbackSubmit/);
+    assert.match(authScript, /feedbackMatchesSaved/);
+    assert.match(authScript, /rating\.addEventListener\('change'/);
+    assert.match(authScript, /feedbackComment\?\.addEventListener\('input'/);
+    assert.match(authScript, /setSavedFeedback\(currentFeedback\)/);
+    assert.match(authScript, /currentUser\?\.uid !== user\.uid/);
     assert.match(authScript, /comment,/);
     assert.match(authScript, /serverTimestamp\(\)/);
     assert.doesNotMatch(authScript, /console\.(info|error)|LOG_PREFIX|logInfo|logError/);
