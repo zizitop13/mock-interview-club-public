@@ -26,6 +26,7 @@ const firebaseConfig = {
   appId: '1:995203978364:web:7ec9a89b645148b09ce5f9',
 };
 
+const MAX_FEEDBACK_COMMENT_LENGTH = 1000;
 const root = document.querySelector('[data-auth-root]');
 
 if (root) {
@@ -47,6 +48,7 @@ if (root) {
   const feedbackSubmit = feedback?.querySelector('[data-feedback-submit]');
   const feedbackStatus = feedback?.querySelector('[data-feedback-status]');
   const feedbackRatings = [...(feedback?.querySelectorAll('[data-feedback-rating]') ?? [])];
+  const feedbackComment = feedback?.querySelector('[data-feedback-comment]');
   let currentUser = null;
 
   const providers = {
@@ -81,6 +83,7 @@ if (root) {
 
   function setFeedbackEnabled(enabled) {
     if (feedbackSubmit) feedbackSubmit.disabled = !enabled;
+    if (feedbackComment) feedbackComment.disabled = !enabled;
     for (const rating of feedbackRatings) rating.disabled = !enabled;
   }
 
@@ -178,7 +181,8 @@ if (root) {
       const snapshot = await getDoc(feedbackReference(user));
       const selected = new Set(snapshot.exists() ? snapshot.data().ratings : []);
       for (const rating of feedbackRatings) rating.checked = selected.has(rating.value);
-      showFeedbackStatus(snapshot.exists() ? 'Your feedback is saved. You can update it.' : 'Select every label that applies.');
+      if (feedbackComment) feedbackComment.value = snapshot.exists() ? snapshot.data().comment ?? '' : '';
+      showFeedbackStatus(snapshot.exists() ? 'Your feedback is saved. You can update it.' : 'Select labels and/or leave a concise comment.');
       setFeedbackEnabled(true);
     } catch (error) {
       const errorCode = error?.code ? ` (${error.code})` : '';
@@ -189,8 +193,13 @@ if (root) {
   async function saveFeedback() {
     if (!currentUser || !feedback) return;
     const ratings = feedbackRatings.filter((rating) => rating.checked).map((rating) => rating.value);
-    if (ratings.length === 0) {
-      showFeedbackStatus('Select at least one label.');
+    const comment = feedbackComment?.value.trim() ?? '';
+    if (ratings.length === 0 && comment.length === 0) {
+      showFeedbackStatus('Select at least one label or write a comment.');
+      return;
+    }
+    if (comment.length > MAX_FEEDBACK_COMMENT_LENGTH) {
+      showFeedbackStatus('Keep the comment within 1,000 characters.');
       return;
     }
 
@@ -199,6 +208,7 @@ if (root) {
     try {
       await setDoc(feedbackReference(currentUser), {
         ratings,
+        comment,
         updatedAt: serverTimestamp(),
       });
       showFeedbackStatus('Feedback saved. Thank you!');

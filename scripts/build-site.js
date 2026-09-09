@@ -53,6 +53,9 @@ function formatQuizFeedback(quizId) {
     ['too-hard', 'Too hard'],
     ['boring', 'Boring'],
     ['brilliant', 'Brilliant'],
+    ['over-complicated', 'Overcomplicated'],
+    ['wrong-answer', 'Wrong answer'],
+    ['incorrect-question', 'Incorrect question'],
   ];
   const choices = ratings.map(([value, label]) =>
     `  <label class="quiz-feedback-choice"><input type="checkbox" value="${value}" data-feedback-rating> <span>${label}</span></label>`
@@ -60,10 +63,13 @@ function formatQuizFeedback(quizId) {
   return [
     '<section class="quiz-feedback" data-quiz-feedback data-quiz-id="' + escapeHtml(quizId) + '">',
     '  <h2>Rate this quiz</h2>',
-    '  <p>Select every label that applies.</p>',
+    '  <p>Select any labels that apply, and optionally leave a concise comment.</p>',
     '  <div class="quiz-feedback-choices">',
     choices,
     '  </div>',
+    '  <label class="quiz-feedback-comment-label" for="quiz-feedback-comment-' + escapeHtml(quizId) + '">Optional comment</label>',
+    '  <textarea class="quiz-feedback-comment" id="quiz-feedback-comment-' + escapeHtml(quizId) + '" data-feedback-comment maxlength="1000" rows="5" placeholder="What should be improved? Please keep it concise and specific."></textarea>',
+    '  <p class="quiz-feedback-limit">Up to 1,000 characters.</p>',
     '  <button class="quiz-feedback-submit" type="button" data-feedback-submit disabled>Save feedback</button>',
     '  <p class="quiz-feedback-status" data-feedback-status role="status" aria-live="polite">Sign in to rate this quiz.</p>',
     '</section>',

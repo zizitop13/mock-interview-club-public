@@ -50,6 +50,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(layout, /data-auth-provider="google"/);
     assert.match(layout, /data-auth-provider="github"/);
     assert.match(layout, /GitHub Pages logs visitors' IP addresses for security purposes/);
+    assert.match(layout, /written feedback you submit/);
     assert.match(authScript, /new GoogleAuthProvider\(\)/);
     assert.match(authScript, /new GithubAuthProvider\(\)/);
     assert.match(authScript, /signInWithPopup\(auth, provider\)/);
@@ -59,6 +60,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /'quizFeedback', feedback\.dataset\.quizId, 'votes', user\.uid/);
     assert.match(authScript, /showExplanationLink\(true\)/);
     assert.match(authScript, /data-feedback-submit/);
+    assert.match(authScript, /data-feedback-comment/);
+    assert.match(authScript, /comment,/);
     assert.match(authScript, /serverTimestamp\(\)/);
     assert.doesNotMatch(authScript, /console\.(info|error)|LOG_PREFIX|logInfo|logError/);
     assert.match(authScript, /error\?\.code/);
@@ -89,9 +92,14 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
     assert.match(explanation, /data-quiz-feedback/);
-    assert.equal((explanation.match(/data-feedback-rating/g) ?? []).length, 7);
+    assert.equal((explanation.match(/data-feedback-rating/g) ?? []).length, 10);
     assert.match(explanation, />Code smells</);
     assert.match(explanation, />Brilliant</);
+    assert.match(explanation, />Overcomplicated</);
+    assert.match(explanation, />Wrong answer</);
+    assert.match(explanation, />Incorrect question</);
+    assert.match(explanation, /data-feedback-comment maxlength="1000"/);
+    assert.match(explanation, /Up to 1,000 characters/);
     assert.doesNotMatch(layout, /class="explanation-link"/);
     assert.match(explanation, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.doesNotMatch(explanation, /```mermaid/);
