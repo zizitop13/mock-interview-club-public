@@ -1,6 +1,6 @@
 ---
 id: sql-mysql-instant-ddl-metadata-lock
-status: draft
+status: published
 ---
 
 ## Question
