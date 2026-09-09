@@ -50,6 +50,8 @@ if (root) {
   const feedbackRatings = [...(feedback?.querySelectorAll('[data-feedback-rating]') ?? [])];
   const feedbackComment = feedback?.querySelector('[data-feedback-comment]');
   let currentUser = null;
+  let feedbackInteractive = false;
+  let savedFeedback = { ratings: [], comment: '' };
 
   const providers = {
     google: new GoogleAuthProvider(),
@@ -81,10 +83,53 @@ if (root) {
     if (feedbackStatus) feedbackStatus.textContent = message;
   }
 
+  function readFeedback() {
+    return {
+      ratings: feedbackRatings
+        .filter((rating) => rating.checked)
+        .map((rating) => rating.value)
+        .sort(),
+      comment: feedbackComment?.value.trim() ?? '',
+    };
+  }
+
+  function feedbackHasContent({ ratings, comment }) {
+    return ratings.length > 0 || comment.length > 0;
+  }
+
+  function feedbackMatchesSaved({ ratings, comment }) {
+    return comment === savedFeedback.comment
+      && ratings.length === savedFeedback.ratings.length
+      && ratings.every((rating, index) => rating === savedFeedback.ratings[index]);
+  }
+
+  function updateFeedbackSubmit() {
+    if (!feedbackSubmit) return;
+    const currentFeedback = readFeedback();
+    feedbackSubmit.disabled = !feedbackInteractive
+      || !feedbackHasContent(currentFeedback)
+      || feedbackMatchesSaved(currentFeedback);
+  }
+
+  function setSavedFeedback(feedbackValue) {
+    savedFeedback = {
+      ratings: [...feedbackValue.ratings].sort(),
+      comment: feedbackValue.comment.trim(),
+    };
+    updateFeedbackSubmit();
+  }
+
   function setFeedbackEnabled(enabled) {
-    if (feedbackSubmit) feedbackSubmit.disabled = !enabled;
+    feedbackInteractive = enabled;
     if (feedbackComment) feedbackComment.disabled = !enabled;
     for (const rating of feedbackRatings) rating.disabled = !enabled;
+    updateFeedbackSubmit();
+  }
+
+  function clearFeedback() {
+    for (const rating of feedbackRatings) rating.checked = false;
+    if (feedbackComment) feedbackComment.value = '';
+    setSavedFeedback({ ratings: [], comment: '' });
   }
 
   function allowQuizRetry(quizId) {
@@ -179,12 +224,20 @@ if (root) {
     showFeedbackStatus('Loading your feedback…');
     try {
       const snapshot = await getDoc(feedbackReference(user));
-      const selected = new Set(snapshot.exists() ? snapshot.data().ratings : []);
+      if (currentUser?.uid !== user.uid) return;
+
+      const restoredFeedback = {
+        ratings: snapshot.exists() ? snapshot.data().ratings ?? [] : [],
+        comment: snapshot.exists() ? snapshot.data().comment ?? '' : '',
+      };
+      const selected = new Set(restoredFeedback.ratings);
       for (const rating of feedbackRatings) rating.checked = selected.has(rating.value);
-      if (feedbackComment) feedbackComment.value = snapshot.exists() ? snapshot.data().comment ?? '' : '';
+      if (feedbackComment) feedbackComment.value = restoredFeedback.comment;
+      setSavedFeedback(restoredFeedback);
       showFeedbackStatus(snapshot.exists() ? 'Your feedback is saved. You can update it.' : 'Select labels and/or leave a concise comment.');
       setFeedbackEnabled(true);
     } catch (error) {
+      if (currentUser?.uid !== user.uid) return;
       const errorCode = error?.code ? ` (${error.code})` : '';
       showFeedbackStatus(`Could not load feedback${errorCode}.`);
     }
@@ -192,9 +245,10 @@ if (root) {
 
   async function saveFeedback() {
     if (!currentUser || !feedback) return;
-    const ratings = feedbackRatings.filter((rating) => rating.checked).map((rating) => rating.value);
-    const comment = feedbackComment?.value.trim() ?? '';
-    if (ratings.length === 0 && comment.length === 0) {
+    const user = currentUser;
+    const currentFeedback = readFeedback();
+    const { ratings, comment } = currentFeedback;
+    if (!feedbackHasContent(currentFeedback)) {
       showFeedbackStatus('Select at least one label or write a comment.');
       return;
     }
@@ -206,17 +260,20 @@ if (root) {
     setFeedbackEnabled(false);
     showFeedbackStatus('Saving feedback…');
     try {
-      await setDoc(feedbackReference(currentUser), {
+      await setDoc(feedbackReference(user), {
         ratings,
         comment,
         updatedAt: serverTimestamp(),
       });
+      if (currentUser?.uid !== user.uid) return;
+      setSavedFeedback(currentFeedback);
       showFeedbackStatus('Feedback saved. Thank you!');
     } catch (error) {
+      if (currentUser?.uid !== user.uid) return;
       const errorCode = error?.code ? ` (${error.code})` : '';
       showFeedbackStatus(`Could not save feedback${errorCode}.`);
     } finally {
-      setFeedbackEnabled(Boolean(currentUser));
+      if (currentUser?.uid === user.uid) setFeedbackEnabled(true);
     }
   }
 
@@ -225,6 +282,10 @@ if (root) {
   }
   document.addEventListener('quiz-answer-selected', (event) => saveQuizAnswer(event.detail));
   feedbackSubmit?.addEventListener('click', saveFeedback);
+  for (const rating of feedbackRatings) {
+    rating.addEventListener('change', updateFeedbackSubmit);
+  }
+  feedbackComment?.addEventListener('input', updateFeedbackSubmit);
 
   signOutButton?.addEventListener('click', async () => {
     setBusy(true);
@@ -252,6 +313,7 @@ if (root) {
       showQuizSaveStatus('Sign in to save your answer.');
       showExplanationLink(false);
       setFeedbackEnabled(false);
+      clearFeedback();
       showFeedbackStatus('Sign in to rate this quiz.');
       return;
     }
