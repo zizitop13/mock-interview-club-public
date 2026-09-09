@@ -97,6 +97,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(style, /\.quiz-statistics-track \{/);
     assert.match(style, /\.quiz-answer-indicator\.is-correct \{/);
     assert.match(style, /\.quiz-answer-indicator\.is-incorrect \{/);
+    assert.match(style, /\.quiz-progress-item \.quiz-link \{[\s\S]*?grid-column: 2;/);
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, navigation.topics.length);

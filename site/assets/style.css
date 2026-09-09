@@ -325,6 +325,14 @@ a:hover {
   align-items: center;
 }
 
+.quiz-progress-item .quiz-answer-indicator {
+  grid-column: 1;
+}
+
+.quiz-progress-item .quiz-link {
+  grid-column: 2;
+}
+
 .quiz-answer-indicator {
   display: inline-block;
   width: 10px;
