@@ -736,17 +736,21 @@ a:hover {
 
 .quiz-feedback-comment-label {
   display: block;
-  margin: 18px 0 7px;
+  clear: both;
+  width: 100%;
+  margin: 26px 0 10px;
+  font-size: 1rem;
   font-weight: 750;
 }
 
 .quiz-feedback-comment {
+  display: block;
   box-sizing: border-box;
   width: 100%;
-  min-height: 112px;
-  padding: 11px 13px;
+  min-height: 180px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 14px;
   outline: none;
   color: var(--text);
   background: var(--background);
