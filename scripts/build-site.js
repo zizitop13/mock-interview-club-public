@@ -27,6 +27,28 @@ function transformMermaid(markdown) {
 function removeFrontmatter(markdown) { return markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim(); }
 function removeFirstHeading(markdown) { return markdown.replace(/^#\s+[^\n]+\r?\n+/, '').trim(); }
 
+function formatQuizStatistics(answers, quizId) {
+  const rows = answers.map(({ letter, text }) => [
+    `  <div class="quiz-statistics-option" data-quiz-stat-option="${letter}">`,
+    '    <div class="quiz-statistics-label">',
+    `      <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`,
+    '      <strong data-quiz-stat-value>0% · 0</strong>',
+    '    </div>',
+    '    <div class="quiz-statistics-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">',
+    '      <span data-quiz-stat-bar></span>',
+    '    </div>',
+    '  </div>',
+  ].join('\n')).join('\n');
+
+  return [
+    `<section class="quiz-statistics" data-quiz-statistics data-quiz-id="${escapeHtml(quizId)}" hidden>`,
+    '  <h3>Community answers</h3>',
+    '  <p class="quiz-statistics-summary" data-quiz-statistics-total>Loading anonymous statistics…</p>',
+    rows,
+    '</section>',
+  ].join('\n');
+}
+
 function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explanationUrl, quizId) {
   const answerRows = answers.map(({ letter, text }) => [
     `<div class="quiz-answer-row" data-correct="${letter === correctAnswer}">`,
@@ -41,6 +63,7 @@ function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explan
     `  <a class="answer-explanation-link" data-explanation-link href="{{ '${explanationUrl}' | relative_url }}" hidden>Read the full explanation →</a>`,
     '  <p class="quiz-save-status" data-quiz-save-status><button class="inline-sign-in-link" type="button" popovertarget="auth-sign-in-dialog">Sign in</button> to save your answer.</p>',
     '</section>', '',
+    formatQuizStatistics(answers, quizId), '',
   ].join('\n')).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
 }
 

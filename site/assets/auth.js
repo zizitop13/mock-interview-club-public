@@ -10,9 +10,12 @@ import {
   signOut,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 import {
+  collection,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
+  runTransaction,
   serverTimestamp,
   setDoc,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
@@ -46,6 +49,9 @@ if (root) {
   const quizAnswers = document.querySelector('.quiz-answers[data-quiz-id]');
   const quizSaveStatus = document.querySelector('[data-quiz-save-status]');
   const explanationLink = document.querySelector('[data-explanation-link]');
+  const quizStatistics = document.querySelector('[data-quiz-statistics][data-quiz-id]');
+  const quizStatisticsTotal = quizStatistics?.querySelector('[data-quiz-statistics-total]');
+  const quizStatisticRows = [...(quizStatistics?.querySelectorAll('[data-quiz-stat-option]') ?? [])];
   const feedback = document.querySelector('[data-quiz-feedback][data-quiz-id]');
   const feedbackSubmit = feedback?.querySelector('[data-feedback-submit]');
   const feedbackStatus = feedback?.querySelector('[data-feedback-status]');
@@ -82,6 +88,88 @@ if (root) {
 
   function showExplanationLink(show) {
     if (explanationLink) explanationLink.hidden = !show;
+  }
+
+  function hideQuizStatistics() {
+    if (quizStatistics) quizStatistics.hidden = true;
+  }
+
+  function renderQuizStatistics(counts) {
+    if (!quizStatistics || !quizStatisticsTotal) return;
+    const visibleAnswers = new Set(quizStatisticRows.map((row) => row.dataset.quizStatOption));
+    const total = [...counts.entries()]
+      .filter(([answer]) => visibleAnswers.has(answer))
+      .reduce((sum, [, count]) => sum + count, 0);
+
+    quizStatisticsTotal.textContent = total === 1
+      ? '1 saved answer · anonymous aggregate'
+      : `${total} saved answers · anonymous aggregate`;
+
+    for (const row of quizStatisticRows) {
+      const count = counts.get(row.dataset.quizStatOption) ?? 0;
+      const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
+      row.querySelector('[data-quiz-stat-value]').textContent = `${percentage}% · ${count}`;
+      const track = row.querySelector('[role="progressbar"]');
+      track.setAttribute('aria-valuenow', String(percentage));
+      track.setAttribute('aria-label', `${row.dataset.quizStatOption}: ${percentage}% (${count})`);
+      row.querySelector('[data-quiz-stat-bar]').style.width = `${percentage}%`;
+    }
+
+    quizStatistics.hidden = false;
+  }
+
+  function quizAnswerReference(user, quizId) {
+    return doc(database, 'users', user.uid, 'quizAnswers', quizId);
+  }
+
+  function quizStatisticsMarkerReference(user, quizId) {
+    return doc(database, 'users', user.uid, 'quizAnswers', quizId, 'statistics', 'counted');
+  }
+
+  function quizStatisticsOptionReference(quizId, answer) {
+    return doc(database, 'quizStats', quizId, 'options', answer);
+  }
+
+  async function countAnswerInStatistics(user, quizId) {
+    await runTransaction(database, async (transaction) => {
+      const answerReference = quizAnswerReference(user, quizId);
+      const markerReference = quizStatisticsMarkerReference(user, quizId);
+      const answerSnapshot = await transaction.get(answerReference);
+      const markerSnapshot = await transaction.get(markerReference);
+
+      if (!answerSnapshot.exists() || markerSnapshot.exists()) return;
+
+      const answer = answerSnapshot.data().selectedAnswer;
+      if (!/^[a-l]$/.test(answer)) return;
+
+      const optionReference = quizStatisticsOptionReference(quizId, answer);
+      const optionSnapshot = await transaction.get(optionReference);
+      const storedCount = optionSnapshot.exists() ? optionSnapshot.data().count : 0;
+      const count = Number.isSafeInteger(storedCount) && storedCount >= 0 ? storedCount : 0;
+
+      transaction.set(markerReference, { answer });
+      transaction.set(optionReference, { count: count + 1 });
+    });
+  }
+
+  async function loadQuizStatistics(user, quizId) {
+    if (!quizStatistics) return;
+    hideQuizStatistics();
+
+    try {
+      await countAnswerInStatistics(user, quizId);
+      const snapshot = await getDocs(collection(database, 'quizStats', quizId, 'options'));
+      if (currentUser?.uid !== user.uid) return;
+
+      const counts = new Map();
+      for (const option of snapshot.docs) {
+        const count = option.data().count;
+        if (Number.isSafeInteger(count) && count >= 0) counts.set(option.id, count);
+      }
+      renderQuizStatistics(counts);
+    } catch {
+      if (currentUser?.uid === user.uid) hideQuizStatistics();
+    }
   }
 
   function showFeedbackStatus(message) {
@@ -195,19 +283,23 @@ if (root) {
       return;
     }
 
+    const user = currentUser;
+    hideQuizStatistics();
     showQuizSaveStatus('Saving answer…');
     try {
-      await setDoc(doc(database, 'users', currentUser.uid, 'quizAnswers', quizId), {
+      await setDoc(quizAnswerReference(user, quizId), {
         selectedAnswer: answer,
         updatedAt: serverTimestamp(),
       });
+      if (currentUser?.uid !== user.uid) return;
       showQuizSaveStatus('Answer saved. Your choice is now locked.');
       showExplanationLink(true);
+      await loadQuizStatistics(user, quizId);
     } catch (error) {
       const errorCode = error?.code ? ` (${error.code})` : '';
       showQuizSaveStatus(`Could not save the answer${errorCode}.`);
       showExplanationLink(false);
-      const restored = error?.code === 'permission-denied' ? await restoreQuizAnswer(currentUser) : false;
+      const restored = error?.code === 'permission-denied' ? await restoreQuizAnswer(user) : false;
       if (!restored) allowQuizRetry(quizId);
     }
   }
@@ -217,10 +309,12 @@ if (root) {
     showQuizSaveStatus('Loading your saved answer…');
     const quizId = quizAnswers.dataset.quizId;
     try {
-      const snapshot = await getDoc(doc(database, 'users', user.uid, 'quizAnswers', quizId));
+      const snapshot = await getDoc(quizAnswerReference(user, quizId));
+      if (currentUser?.uid !== user.uid) return false;
       if (!snapshot.exists()) {
         showQuizSaveStatus('Your answer will be saved automatically.');
         showExplanationLink(false);
+        hideQuizStatistics();
         return false;
       }
 
@@ -229,11 +323,13 @@ if (root) {
       }));
       showQuizSaveStatus('Saved answer restored. Your choice is locked.');
       showExplanationLink(true);
+      await loadQuizStatistics(user, quizId);
       return true;
     } catch (error) {
       const errorCode = error?.code ? ` (${error.code})` : '';
       showQuizSaveStatus(`Could not load the saved answer${errorCode}.`);
       showExplanationLink(false);
+      hideQuizStatistics();
       return false;
     }
   }
@@ -336,6 +432,7 @@ if (root) {
     if (!user) {
       showQuizSignInPrompt();
       showExplanationLink(false);
+      hideQuizStatistics();
       setFeedbackEnabled(false);
       clearFeedback();
       showFeedbackSignInPrompt();

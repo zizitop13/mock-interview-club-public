@@ -821,3 +821,60 @@ a:hover {
 .inline-sign-in-link:hover {
   color: #b8dcff;
 }
+
+
+.quiz-statistics {
+  margin: 0 0 28px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.quiz-statistics h3 {
+  margin: 0;
+}
+
+.quiz-statistics-summary {
+  margin: 6px 0 18px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.quiz-statistics-option + .quiz-statistics-option {
+  margin-top: 14px;
+}
+
+.quiz-statistics-label {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.quiz-statistics-label > span {
+  min-width: 0;
+}
+
+.quiz-statistics-label > strong {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.quiz-statistics-track {
+  overflow: hidden;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--background);
+}
+
+.quiz-statistics-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 180ms ease;
+}

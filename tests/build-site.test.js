@@ -60,7 +60,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /loginDialog\?\.hidePopover\?\.\(\)/);
     assert.match(authScript, /onAuthStateChanged\(auth/);
     assert.match(authScript, /getFirestore\(app\)/);
-    assert.match(authScript, /'users', currentUser\.uid, 'quizAnswers', quizId/);
+    assert.match(authScript, /runTransaction\(database/);
+    assert.match(authScript, /'quizStats', quizId, 'options', answer/);
+    assert.match(authScript, /'statistics', 'counted'/);
+    assert.match(authScript, /getDocs\(collection\(database, 'quizStats'/);
+    assert.match(authScript, /'users', user\.uid, 'quizAnswers', quizId/);
     assert.match(authScript, /'quizFeedback', feedback\.dataset\.quizId, 'votes', user\.uid/);
     assert.match(authScript, /showExplanationLink\(true\)/);
     assert.match(authScript, /data-feedback-submit/);
@@ -83,6 +87,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
     assert.match(style, /\.auth-panel \{/);
     assert.match(style, /\.inline-sign-in-link \{/);
+    assert.match(style, /\.quiz-statistics \{/);
+    assert.match(style, /\.quiz-statistics-track \{/);
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
     assert.equal(result.topics, navigation.topics.length);
@@ -123,6 +129,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal((quiz.match(/data-correct="true"/g) ?? []).length, 1);
     assert.equal((quiz.match(/data-correct="false"/g) ?? []).length, 3);
     assert.match(quiz, /data-answer-result hidden/);
+    assert.match(quiz, /data-quiz-statistics[^>]+hidden/);
+    assert.equal((quiz.match(/data-quiz-stat-option="[a-d]"/g) ?? []).length, 4);
+    assert.equal((quiz.match(/role="progressbar"/g) ?? []).length, 4);
+    assert.match(quiz, /Community answers/);
     assert.match(quiz, /Another writer can modify or remove the entry/);
     assert.match(quiz, /data-explanation-link[^>]+hidden/);
     assert.doesNotMatch(quiz, /paired_url: "\/quizzes\/java\/read-write-lock-downgrade-explain\/"/);
