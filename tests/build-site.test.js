@@ -45,7 +45,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const navigationLabCount = navigation.lab_tracks
       .reduce((total, track) => total + track.labs.length, 0);
 
-    assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}"/);
+    assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}\?v={{ site\.github\.build_revision/);
     assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 2);
     assert.match(layout, /data-auth-provider="google"/);
     assert.match(layout, /data-auth-provider="github"/);
