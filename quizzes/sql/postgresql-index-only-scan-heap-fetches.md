@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-index-only-scan-heap-fetches
-status: draft
+status: published
 ---
 
 ## Question
