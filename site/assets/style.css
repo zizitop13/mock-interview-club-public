@@ -426,6 +426,51 @@ a:hover {
   line-height: 1.72;
 }
 
+.latest-quiz {
+  margin: 20px 0 38px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-soft), var(--panel));
+}
+
+.latest-quiz-label,
+.latest-quiz-topic {
+  margin: 0;
+}
+
+.latest-quiz-label {
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.latest-quiz-title {
+  margin: 8px 0 4px;
+  padding: 0;
+  border: 0;
+  font-size: clamp(1.25rem, 4vw, 1.65rem);
+}
+
+.latest-quiz-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.latest-quiz-topic {
+  color: var(--muted);
+}
+
+.latest-quiz-link {
+  display: inline-block;
+  margin-top: 14px;
+  color: var(--accent);
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .content h2,
 .content h3 {
   margin-top: 2.2em;
@@ -722,6 +767,7 @@ a:hover {
 
   .sidebar {
     width: min(88vw, var(--sidebar-width));
+    padding-top: 76px;
     transform: translateX(-105%);
     transition: transform 180ms ease;
   }

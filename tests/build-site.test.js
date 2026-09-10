@@ -97,6 +97,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(style, /\.quiz-statistics-track \{/);
     assert.match(style, /\.quiz-answer-indicator\.is-correct \{/);
     assert.match(style, /\.quiz-answer-indicator\.is-incorrect \{/);
+    assert.match(style, /\.latest-quiz \{/);
+    assert.match(style, /@media \(max-width: 860px\)[\s\S]*?\.sidebar \{[\s\S]*?padding-top: 76px;/);
     assert.match(style, /\.quiz-progress-item \.quiz-link \{[\s\S]*?grid-column: 2;/);
     assert.equal(result.quizzes, navigationQuizCount);
     assert.ok(result.quizzes >= 3);
@@ -107,6 +109,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.ok(navigation.topics.every((topic) => topic.quizzes.every((item) => item.id && item.correct_answer)));
     assert.equal((index.match(/data-quiz-list-item/g) ?? []).length, navigationQuizCount);
     assert.equal((index.match(/data-quiz-answer-indicator/g) ?? []).length, navigationQuizCount);
+    assert.match(index, /<section class="latest-quiz" data-latest-quiz/);
+    assert.match(index, /class="latest-quiz-title"><a href="{{ '\/quizzes\/[a-z0-9-]+\/[a-z0-9-]+\/' \| relative_url }}">/);
+    assert.match(index, /data-quiz-id="[a-z0-9-]+--[a-z0-9-]+"/);
+    assert.equal((index.match(/<input type="checkbox" data-quiz-answer value="[a-d]">/g) ?? []).length, 4);
+    assert.match(index, /Open the quiz page →/);
     assert.match(index, /class="quiz-index-item"[^>]+data-correct-answer="[a-l]"/);
     assert.match(layout, /class="nav-item quiz-progress-item"[\s\S]*?data-quiz-id="{{ quiz\.id }}"[\s\S]*?data-correct-answer="{{ quiz\.correct_answer }}"/);
     assert.match(licenseServerLab, /permalink: "\/labs\/coding\/floating-license-server\/"/);

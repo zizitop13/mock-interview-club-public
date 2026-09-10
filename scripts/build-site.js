@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -107,6 +108,39 @@ function pageUrl(quiz, explanation = false) {
   return `/quizzes/${quiz.topic}/${quiz.slug}${explanation ? '-explain' : ''}/`;
 }
 
+function findLatestQuiz(quizzes, rootDirectory) {
+  try {
+    const addedQuizFiles = execFileSync(
+      'git',
+      ['log', '--diff-filter=A', '--name-only', '--pretty=format:', '--', 'quizzes/*/*.md'],
+      { cwd: rootDirectory, encoding: 'utf8' },
+    ).split(/\r?\n/).filter((filePath) => filePath && !filePath.endsWith('-explain.md'));
+    const latestFile = addedQuizFiles[0];
+    return quizzes.find((quiz) => quiz.filePath === latestFile) ?? quizzes.at(-1);
+  } catch {
+    return quizzes.at(-1);
+  }
+}
+
+function formatLatestQuiz(quiz, quizContent) {
+  if (!quiz) return '';
+
+  const quizUrl = pageUrl(quiz);
+  const quizTitle = titleFromSlug(quiz.slug).replace(/^Postgresql\b/, 'PostgreSQL');
+  const topicTitle = quiz.topic === 'sql' ? 'SQL' : titleFromSlug(quiz.topic);
+  return [
+    `<section class="latest-quiz" data-latest-quiz markdown="1">`,
+    '  <p class="latest-quiz-label">Latest quiz</p>',
+    `  <h2 class="latest-quiz-title"><a href="{{ '${quizUrl}' | relative_url }}">${escapeHtml(quizTitle)}</a></h2>`,
+    `  <p class="latest-quiz-topic">${escapeHtml(topicTitle)}</p>`,
+    '',
+    quizContent,
+    '',
+    `  <a class="latest-quiz-link" href="{{ '${quizUrl}' | relative_url }}">Open the quiz page →</a>`,
+    '</section>',
+  ].join('\n');
+}
+
 async function loadLabs(rootDirectory) {
   const labsDirectory = path.join(rootDirectory, 'labs');
   let tracks;
@@ -137,11 +171,13 @@ async function loadLabs(rootDirectory) {
 
 export async function buildSite({ rootDirectory = process.cwd(), outputDirectory = path.join(rootDirectory, '.site-source') } = {}) {
   const [quizzes, labs] = await Promise.all([loadQuizzes(rootDirectory), loadLabs(rootDirectory)]);
+  const latestQuiz = findLatestQuiz(quizzes, rootDirectory);
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
   await cp(path.join(rootDirectory, 'site'), outputDirectory, { recursive: true });
 
   const topics = new Map();
+  let latestQuizContent = '';
   for (const quiz of quizzes) {
     const topicTitle = titleFromSlug(quiz.topic), quizTitle = titleFromSlug(quiz.slug);
     const quizUrl = pageUrl(quiz), explanationUrl = pageUrl(quiz, true);
@@ -150,9 +186,11 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
       readFile(path.join(rootDirectory, quiz.explanationFilePath), 'utf8'),
     ]);
     const destination = path.join(outputDirectory, 'quizzes', quiz.topic);
+    const quizContent = transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`));
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl })}${transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`))}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl })}${quizContent}\n`);
     await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n\n${formatQuizFeedback(`${quiz.topic}--${quiz.slug}`)}\n`);
+    if (quiz.filePath === latestQuiz?.filePath) latestQuizContent = quizContent;
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
     topics.get(quiz.topic).quizzes.push({
       id: `${quiz.topic}--${quiz.slug}`,
@@ -198,7 +236,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     ].join('\n')),
     '</ul>',
   ].join('\n'));
-  const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions. Sign in and answer to reveal each detailed explanation.', '', ...quizSections, ''].join('\n');
+  const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', formatLatestQuiz(latestQuiz, latestQuizContent), '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions. Sign in and answer to reveal each detailed explanation.', '', ...quizSections, ''].join('\n');
   await writeFile(path.join(outputDirectory, 'index.md'), index);
   return { outputDirectory, quizzes: quizzes.length, topics: navigation.topics.length, labs: labs.length, labTracks: navigation.lab_tracks.length };
 }
