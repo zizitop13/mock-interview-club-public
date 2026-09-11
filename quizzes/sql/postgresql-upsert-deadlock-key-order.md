@@ -1,6 +1,6 @@
 ---
 id: sql-postgresql-upsert-deadlock-key-order
-status: draft
+status: published
 ---
 
 ## Question
