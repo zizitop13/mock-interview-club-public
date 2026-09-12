@@ -20,10 +20,23 @@ flowchart LR
 
 The numbers above are interview assumptions for a Black Friday spike, not a prescribed architecture. Ask the interviewer for any other constraint you need.
 
+<nav class="stage-dot-navigation" aria-label="Lab stages" data-stage-navigation>
+  <a href="#stage-1-functional-requirements-3-minutes" data-stage-link aria-label="Stage 1: Functional requirements" aria-current="step"><span aria-hidden="true">1</span><span class="stage-dot-tooltip">Functional requirements</span></a>
+  <a href="#stage-2-non-functional-requirements-2-minutes" data-stage-link aria-label="Stage 2: Non-functional requirements"><span aria-hidden="true">2</span><span class="stage-dot-tooltip">Non-functional requirements</span></a>
+  <a href="#stage-3-sizing-2-minutes" data-stage-link aria-label="Stage 3: Sizing"><span aria-hidden="true">3</span><span class="stage-dot-tooltip">Sizing</span></a>
+  <a href="#stage-4-entities-5-minutes" data-stage-link aria-label="Stage 4: Entities"><span aria-hidden="true">4</span><span class="stage-dot-tooltip">Entities</span></a>
+  <a href="#stage-5-api-5-minutes" data-stage-link aria-label="Stage 5: API"><span aria-hidden="true">5</span><span class="stage-dot-tooltip">API</span></a>
+  <a href="#stage-6-high-level-design-10-minutes" data-stage-link aria-label="Stage 6: High-level design"><span aria-hidden="true">6</span><span class="stage-dot-tooltip">High-level design</span></a>
+  <a href="#stage-7-data-storage-5-minutes" data-stage-link aria-label="Stage 7: Data storage"><span aria-hidden="true">7</span><span class="stage-dot-tooltip">Data storage</span></a>
+  <a href="#stage-8-deep-dives-15-minutes" data-stage-link aria-label="Stage 8: Deep dives"><span aria-hidden="true">8</span><span class="stage-dot-tooltip">Deep dives</span></a>
+</nav>
+
 ## Interview framework
 
+<div class="framework-diagram" markdown="1">
+
 ```mermaid
-%%{init: {"look": "handDrawn", "theme": "base"}}%%
+%%{init: {"look": "handDrawn", "theme": "base", "themeVariables": {"fontSize": "20px"}}}%%
 flowchart LR
     FR["Functional requirements<br/>3 min"] --> NFR["Non-functional requirements<br/>2 min"]
     NFR --> Size["Sizing<br/>2 min"]
@@ -33,6 +46,8 @@ flowchart LR
     HLD --> Storage["Data storage<br/>5 min"]
     Storage --> Deep["Deep dives<br/>15 min"]
 ```
+
+</div>
 
 Inspired by Hello Interview's [Delivery Framework](https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery).
 
@@ -123,31 +138,31 @@ The useful result is the order of magnitude and the design decision it affects.
 <button class="lab-copy-summary-button" type="button" data-copy-lab-summary>Copy stages 1–3 for the board</button>
 
 <div class="lab-design-flow" aria-label="Visual design stages">
-  <section class="lab-design-step">
+  <section class="lab-design-step" id="stage-4-entities-5-minutes" data-stage-target="#stage-4-entities-5-minutes">
     <span>Stage 4 · 5 min</span>
     <strong>Entities</strong>
     <p>Draw the main business objects, their identities, states, and relationships.</p>
   </section>
   <span class="lab-design-arrow" aria-hidden="true">→</span>
-  <section class="lab-design-step">
+  <section class="lab-design-step" id="stage-5-api-5-minutes" data-stage-target="#stage-5-api-5-minutes">
     <span>Stage 5 · 5 min</span>
     <strong>API</strong>
     <p>Add the operations, important request fields, responses, and business errors.</p>
   </section>
   <span class="lab-design-arrow" aria-hidden="true">→</span>
-  <section class="lab-design-step">
+  <section class="lab-design-step" id="stage-6-high-level-design-10-minutes" data-stage-target="#stage-6-high-level-design-10-minutes">
     <span>Stage 6 · 10 min</span>
     <strong>High-level design</strong>
     <p>Connect the main components and walk through the success path and one failure.</p>
   </section>
   <span class="lab-design-arrow" aria-hidden="true">→</span>
-  <section class="lab-design-step">
+  <section class="lab-design-step" id="stage-7-data-storage-5-minutes" data-stage-target="#stage-7-data-storage-5-minutes">
     <span>Stage 7 · 5 min</span>
     <strong>Data storage</strong>
     <p>Add records, keys, access patterns, lifecycle, and atomic state changes.</p>
   </section>
   <span class="lab-design-arrow" aria-hidden="true">→</span>
-  <section class="lab-design-step">
+  <section class="lab-design-step" id="stage-8-deep-dives-15-minutes" data-stage-target="#stage-8-deep-dives-15-minutes">
     <span>Stage 8 · 15 min</span>
     <strong>Deep dives</strong>
     <p>Explore races, retries, hotspots, partial failures, recovery, and monitoring.</p>

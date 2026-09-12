@@ -131,7 +131,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal((designLab.match(/data-copy-lab-note/g) ?? []).length, 3);
     assert.match(designLab, /data-copy-lab-summary/);
     assert.equal((designLab.match(/class="lab-design-step"/g) ?? []).length, 5);
-    assert.doesNotMatch(designLab, /class="stage-navigation"/);
+    assert.match(designLab, /class="stage-dot-navigation"/);
+    assert.equal((designLab.match(/data-stage-link/g) ?? []).length, 8);
+    assert.equal((designLab.match(/data-stage-target/g) ?? []).length, 5);
+    assert.match(designLab, /class="framework-diagram"/);
     assert.doesNotMatch(designLab, /\bSKU\b/);
     assert.match(designLab, /https:\/\/excalidraw\.com\/\?embed=true&amp;theme=dark/);
     assert.match(designLab, /Functional requirements&lt;br\/&gt;3 min/);
@@ -141,6 +144,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(siteScript, /data-copy-lab-note/);
     assert.match(siteScript, /data-copy-lab-summary/);
     assert.match(siteScript, /labStageTitle/);
+    assert.match(siteScript, /const stageNavigation/);
+    assert.match(siteScript, /activateStage/);
+    assert.match(siteScript, /requestAnimationFrame/);
+    assert.match(style, /\.stage-dot-navigation a\[aria-current="step"\]/);
+    assert.match(style, /\.framework-diagram \.diagram img/);
     const topicTitles = navigation.topics.map(({ title }) => title);
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);

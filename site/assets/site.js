@@ -133,6 +133,80 @@ for (const button of document.querySelectorAll('[data-copy-lab-summary]')) {
   });
 }
 
+const stageNavigation = document.querySelector('[data-stage-navigation]');
+
+if (stageNavigation) {
+  const stageLinks = [...stageNavigation.querySelectorAll('[data-stage-link]')];
+  const writtenStageTargets = stageLinks.slice(0, 4)
+    .map((link) => document.querySelector(link.hash))
+    .filter(Boolean);
+  const designFlow = document.querySelector('.lab-design-flow');
+  const designSteps = [...document.querySelectorAll('[data-stage-target]')];
+  const designStageHashes = new Set(stageLinks.slice(3).map((link) => link.hash));
+  let selectedDesignStage = designStageHashes.has(window.location.hash) ? window.location.hash : null;
+  let scrollFrame = null;
+
+  const activateStage = (hash) => {
+    for (const link of stageLinks) {
+      if (link.hash === hash) link.setAttribute('aria-current', 'step');
+      else link.removeAttribute('aria-current');
+    }
+  };
+
+  const updateWrittenStage = () => {
+    const activationLine = window.innerHeight * 0.32;
+    let current = writtenStageTargets[0];
+
+    for (const target of writtenStageTargets) {
+      if (target.getBoundingClientRect().top <= activationLine) current = target;
+    }
+
+    if (!current) return;
+    const hash = `#${current.id}`;
+    activateStage(hash === stageLinks[3]?.hash && selectedDesignStage ? selectedDesignStage : hash);
+  };
+
+  const updateDesignStage = () => {
+    if (!designFlow || designSteps.length === 0) return;
+    const firstStepOffset = designSteps[0].offsetLeft;
+    const closest = designSteps.reduce((best, step) => (
+      Math.abs((step.offsetLeft - firstStepOffset) - designFlow.scrollLeft)
+        < Math.abs((best.offsetLeft - firstStepOffset) - designFlow.scrollLeft)
+        ? step
+        : best
+    ));
+    selectedDesignStage = closest.dataset.stageTarget;
+    if (designFlow.getBoundingClientRect().top <= window.innerHeight * 0.55) {
+      activateStage(selectedDesignStage);
+    }
+  };
+
+  stageLinks.forEach((link, index) => {
+    link.addEventListener('click', () => {
+      selectedDesignStage = index >= 3 ? link.hash : null;
+      activateStage(link.hash);
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = null;
+      updateWrittenStage();
+    });
+  }, { passive: true });
+
+  designFlow?.addEventListener('scroll', () => {
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = null;
+      updateDesignStage();
+    });
+  }, { passive: true });
+
+  updateWrittenStage();
+}
+
 async function copyText(value, button) {
   try {
     await navigator.clipboard.writeText(value);
