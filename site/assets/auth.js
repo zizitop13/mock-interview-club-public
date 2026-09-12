@@ -50,6 +50,8 @@ if (root) {
   const quizAnswers = document.querySelector('.quiz-answers[data-quiz-id]');
   const quizSaveStatus = document.querySelector('[data-quiz-save-status]');
   const explanationLink = document.querySelector('[data-explanation-link]');
+  const authRequiredLinks = [...document.querySelectorAll('[data-auth-required-link]')];
+  const authRequiredPrompts = [...document.querySelectorAll('[data-auth-required-prompt]')];
   const quizStatistics = document.querySelector('[data-quiz-statistics][data-quiz-id]');
   const quizStatisticsTotal = quizStatistics?.querySelector('[data-quiz-statistics-total]');
   const quizStatisticRows = [...(quizStatistics?.querySelectorAll('[data-quiz-stat-option]') ?? [])];
@@ -90,6 +92,11 @@ if (root) {
 
   function showExplanationLink(show) {
     if (explanationLink) explanationLink.hidden = !show;
+  }
+
+  function showAuthRequiredLinks(show) {
+    for (const link of authRequiredLinks) link.hidden = !show;
+    for (const prompt of authRequiredPrompts) prompt.hidden = show;
   }
 
   function hideQuizStatistics() {
@@ -519,6 +526,7 @@ if (root) {
     currentUser = user;
     signedOutView.hidden = Boolean(user);
     signedInView.hidden = !user;
+    showAuthRequiredLinks(Boolean(user));
 
     if (!user) {
       showQuizSignInPrompt();

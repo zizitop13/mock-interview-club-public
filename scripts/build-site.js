@@ -100,8 +100,19 @@ function formatQuizFeedback(quizId) {
   ].join('\n');
 }
 
-function pageFrontmatter({ title, topic, kind, url, pairedUrl = '' }) {
-  return ['---', 'layout: default', `title: ${yamlString(title)}`, `topic: ${yamlString(topic)}`, `kind: ${yamlString(kind)}`, `permalink: ${yamlString(url)}`, pairedUrl ? `paired_url: ${yamlString(pairedUrl)}` : '', '---', ''].filter(Boolean).join('\n') + '\n';
+function pageFrontmatter({ title, topic, kind, url, pairedUrl = '', pairedAuthRequired = false }) {
+  return [
+    '---',
+    'layout: default',
+    `title: ${yamlString(title)}`,
+    `topic: ${yamlString(topic)}`,
+    `kind: ${yamlString(kind)}`,
+    `permalink: ${yamlString(url)}`,
+    pairedUrl ? `paired_url: ${yamlString(pairedUrl)}` : '',
+    pairedAuthRequired ? 'paired_auth_required: true' : '',
+    '---',
+    '',
+  ].filter(Boolean).join('\n') + '\n';
 }
 
 function pageUrl(quiz, explanation = false) {
@@ -207,7 +218,8 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     const source = await readFile(path.join(rootDirectory, lab.filePath), 'utf8');
     const destination = path.join(outputDirectory, 'labs', lab.track);
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url, pairedUrl: solutionUrl })}${transformMermaid(removeFirstHeading(source))}\n`);
+    const pairedAuthRequired = lab.track === 'design' && lab.slug === 'inventory-reservations';
+    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url, pairedUrl: solutionUrl, pairedAuthRequired })}${transformMermaid(removeFirstHeading(source))}\n`);
     if (lab.solutionFilePath) {
       const solutionSource = await readFile(path.join(rootDirectory, lab.solutionFilePath), 'utf8');
       await writeFile(path.join(destination, `${lab.slug}-solution.md`), `${pageFrontmatter({ title: `${lab.title} solution`, topic: `${trackTitle} labs`, kind: 'Lab solution', url: solutionUrl, pairedUrl: url })}${transformMermaid(removeFirstHeading(solutionSource))}\n`);

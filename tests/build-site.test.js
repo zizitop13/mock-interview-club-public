@@ -18,6 +18,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const authScript = await readFile(path.join(outputDirectory, 'assets', 'auth.js'), 'utf8');
     const siteScript = await readFile(path.join(outputDirectory, 'assets', 'site.js'), 'utf8');
     const style = await readFile(path.join(outputDirectory, 'assets', 'style.css'), 'utf8');
+    const brandIcon = await readFile(path.join(outputDirectory, 'assets', 'brand-icon.svg'), 'utf8');
+    const favicon = await readFile(path.join(outputDirectory, 'assets', 'favicon.png'));
     const index = await readFile(path.join(outputDirectory, 'index.md'), 'utf8');
     const explanation = await readFile(
       path.join(outputDirectory, 'quizzes', 'kafka', 'partition-count-key-ordering-explain.md'),
@@ -40,6 +42,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       path.join(outputDirectory, 'labs', 'design', 'inventory-reservations.md'),
       'utf8',
     );
+    const designLabSolution = await readFile(
+      path.join(outputDirectory, 'labs', 'design', 'inventory-reservations-solution.md'),
+      'utf8',
+    );
 
     const navigationQuizCount = navigation.topics
       .reduce((total, topic) => total + topic.quizzes.length, 0);
@@ -47,6 +53,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       .reduce((total, track) => total + track.labs.length, 0);
 
     assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}\?v={{ site\.github\.build_revision/);
+    assert.match(layout, /rel="icon" type="image\/png" sizes="64x64" href="{{ '\/assets\/favicon\.png' \| relative_url }}/);
+    assert.match(layout, /class="brand-mark" src="{{ '\/assets\/brand-icon\.svg' \| relative_url }}/);
+    assert.match(brandIcon, /viewBox="0 0 374 550"/);
+    assert.equal(favicon.subarray(1, 4).toString(), 'PNG');
     assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 4);
     assert.match(layout, /data-auth-provider="google"/);
     assert.match(layout, /data-auth-provider="github"/);
@@ -73,6 +83,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /'users', user\.uid, 'quizAnswers', quizId/);
     assert.match(authScript, /'quizFeedback', feedback\.dataset\.quizId, 'votes', user\.uid/);
     assert.match(authScript, /showExplanationLink\(true\)/);
+    assert.match(authScript, /querySelectorAll\('\[data-auth-required-link\]'\)/);
+    assert.match(authScript, /showAuthRequiredLinks\(Boolean\(user\)\)/);
     assert.match(authScript, /data-feedback-submit/);
     assert.match(authScript, /data-feedback-comment/);
     assert.match(authScript, /updateFeedbackSubmit/);
@@ -124,8 +136,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(licenseServerSolution, /kind: "Lab solution"/);
     assert.match(licenseServerSolution, /paired_url: "\/labs\/coding\/floating-license-server\/"/);
     assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'coding').labs.length, 1);
+    assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'design').labs.length, 1);
     assert.match(designLab, /title: "Inventory Reservations"/);
     assert.match(designLab, /permalink: "\/labs\/design\/inventory-reservations\/"/);
+    assert.match(designLab, /paired_url: "\/labs\/design\/inventory-reservations-solution\/"/);
+    assert.match(designLab, /paired_auth_required: true/);
     assert.match(designLab, /class="lab-prompt"/);
     assert.equal((designLab.match(/class="lab-workspace"/g) ?? []).length, 3);
     assert.equal((designLab.match(/data-copy-lab-note/g) ?? []).length, 3);
@@ -145,6 +160,16 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(designLab, /Deep dives&lt;br\/&gt;15 min/);
     assert.match(designLab, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.match(designLab, /data-copy-diagram/);
+    assert.match(designLabSolution, /kind: "Lab solution"/);
+    assert.match(designLabSolution, /permalink: "\/labs\/design\/inventory-reservations-solution\/"/);
+    assert.match(designLabSolution, /paired_url: "\/labs\/design\/inventory-reservations\/"/);
+    assert.match(designLabSolution, /For every item, `0 <= reserved <= onHand`/);
+    assert.match(designLabSolution, /FOR UPDATE SKIP LOCKED/);
+    assert.match(designLabSolution, /Expiry racing with payment/);
+    assert.match(designLabSolution, /https:\/\/mermaid\.ink\/svg\/pako:/);
+    assert.doesNotMatch(designLabSolution, /```mermaid/);
+    assert.match(layout, /data-auth-required-link[^>]+hidden>Read the full solution/);
+    assert.match(layout, /data-auth-required-prompt>[\s\S]*?popovertarget="auth-sign-in-dialog"/);
     assert.match(siteScript, /data-copy-lab-note/);
     assert.match(siteScript, /data-copy-lab-summary/);
     assert.match(siteScript, /labStageTitle/);

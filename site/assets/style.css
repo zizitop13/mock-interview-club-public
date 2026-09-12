@@ -61,15 +61,10 @@ a:hover {
 }
 
 .brand-mark {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid var(--accent);
-  border-radius: 12px;
-  color: #121820;
-  background: var(--accent);
-  font-weight: 900;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 56px;
+  object-fit: contain;
 }
 
 .brand strong,
@@ -423,6 +418,11 @@ body:has(.stage-dot-navigation) .main {
   color: var(--accent);
   font-weight: 700;
   text-decoration: none;
+}
+
+.paired-link-gate {
+  margin: 14px 0 0;
+  color: var(--muted);
 }
 
 .content {
