@@ -391,6 +391,10 @@ a:hover {
   padding: 64px 0 48px;
 }
 
+body:has(.stage-dot-navigation) .main {
+  width: min(1100px, calc(100% - var(--sidebar-width) - 96px));
+}
+
 .page-header {
   margin-bottom: 34px;
   padding-bottom: 26px;

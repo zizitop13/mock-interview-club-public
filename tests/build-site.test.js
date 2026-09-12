@@ -149,6 +149,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(siteScript, /requestAnimationFrame/);
     assert.match(style, /\.stage-dot-navigation a\[aria-current="step"\]/);
     assert.match(style, /\.framework-diagram \.diagram img/);
+    assert.match(style, /body:has\(\.stage-dot-navigation\) \.main/);
     const topicTitles = navigation.topics.map(({ title }) => title);
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
