@@ -20,15 +20,14 @@ flowchart LR
 
 The numbers above are interview assumptions for a Black Friday spike, not a prescribed architecture. Ask the interviewer for any other constraint you need.
 
-<nav class="stage-dot-navigation" aria-label="Lab stages" data-stage-navigation>
-  <a href="#stage-1-functional-requirements-3-minutes" data-stage-link aria-label="Stage 1: Functional requirements" aria-current="step"><span aria-hidden="true">1</span><span class="stage-dot-tooltip">Functional requirements</span></a>
-  <a href="#stage-2-non-functional-requirements-2-minutes" data-stage-link aria-label="Stage 2: Non-functional requirements"><span aria-hidden="true">2</span><span class="stage-dot-tooltip">Non-functional requirements</span></a>
-  <a href="#stage-3-sizing-2-minutes" data-stage-link aria-label="Stage 3: Sizing"><span aria-hidden="true">3</span><span class="stage-dot-tooltip">Sizing</span></a>
-  <a href="#stage-4-entities-5-minutes" data-stage-link aria-label="Stage 4: Entities"><span aria-hidden="true">4</span><span class="stage-dot-tooltip">Entities</span></a>
-  <a href="#stage-5-api-5-minutes" data-stage-link aria-label="Stage 5: API"><span aria-hidden="true">5</span><span class="stage-dot-tooltip">API</span></a>
-  <a href="#stage-6-high-level-design-10-minutes" data-stage-link aria-label="Stage 6: High-level design"><span aria-hidden="true">6</span><span class="stage-dot-tooltip">High-level design</span></a>
-  <a href="#stage-7-data-storage-5-minutes" data-stage-link aria-label="Stage 7: Data storage"><span aria-hidden="true">7</span><span class="stage-dot-tooltip">Data storage</span></a>
-  <a href="#stage-8-deep-dives-15-minutes" data-stage-link aria-label="Stage 8: Deep dives"><span aria-hidden="true">8</span><span class="stage-dot-tooltip">Deep dives</span></a>
+<nav class="stage-dot-navigation" aria-label="Page sections" data-stage-navigation>
+  <a href="#inventory-design-prompt" data-stage-link aria-label="Problem: Design an inventory reservation system" aria-current="step"><span class="stage-dot-tooltip">Design an inventory reservation system</span></a>
+  <a href="#interview-framework" data-stage-link aria-label="Interview framework"><span class="stage-dot-tooltip">Interview framework</span></a>
+  <a href="#stage-1-functional-requirements-3-minutes" data-stage-link aria-label="Stage 1: Functional requirements"><span class="stage-dot-tooltip">Functional requirements</span></a>
+  <a href="#stage-2-non-functional-requirements-2-minutes" data-stage-link aria-label="Stage 2: Non-functional requirements"><span class="stage-dot-tooltip">Non-functional requirements</span></a>
+  <a href="#stage-3-sizing-2-minutes" data-stage-link aria-label="Stage 3: Sizing"><span class="stage-dot-tooltip">Sizing</span></a>
+  <a href="#stages-48-design-on-the-board-40-minutes" data-stage-link aria-label="Stages 4–8: Design on the board"><span class="stage-dot-tooltip">Stages 4–8: Design on the board</span></a>
+  <a href="#further-reading-after-the-interview" data-stage-link aria-label="Further reading after the interview"><span class="stage-dot-tooltip">Further reading after the interview</span></a>
 </nav>
 
 ## Interview framework

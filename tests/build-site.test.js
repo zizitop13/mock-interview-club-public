@@ -132,7 +132,11 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(designLab, /data-copy-lab-summary/);
     assert.equal((designLab.match(/class="lab-design-step"/g) ?? []).length, 5);
     assert.match(designLab, /class="stage-dot-navigation"/);
-    assert.equal((designLab.match(/data-stage-link/g) ?? []).length, 8);
+    assert.equal((designLab.match(/data-stage-link/g) ?? []).length, 7);
+    assert.match(designLab, /href="#interview-framework"/);
+    assert.match(designLab, /href="#stages-48-design-on-the-board-40-minutes"/);
+    assert.match(designLab, /href="#further-reading-after-the-interview"/);
+    assert.doesNotMatch(designLab, /<span aria-hidden="true">[1-8]<\/span>/);
     assert.equal((designLab.match(/data-stage-target/g) ?? []).length, 5);
     assert.match(designLab, /class="framework-diagram"/);
     assert.doesNotMatch(designLab, /\bSKU\b/);
