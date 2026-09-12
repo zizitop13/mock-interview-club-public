@@ -546,8 +546,47 @@ a:hover {
 
 .lab-workspace-label {
   display: block;
-  margin: 18px 0 9px;
   font-weight: 800;
+}
+
+.lab-workspace-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 9px;
+}
+
+.lab-copy-button,
+.lab-copy-summary-button {
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--background);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.lab-copy-button:hover,
+.lab-copy-summary-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.lab-copy-summary-button {
+  margin: 0 0 18px;
+  padding: 10px 15px;
+  border-color: var(--accent);
+  color: var(--background);
+  background: var(--accent);
+}
+
+.lab-copy-summary-button:hover {
+  color: var(--background);
+  filter: brightness(1.08);
 }
 
 .lab-workspace {
@@ -573,6 +612,59 @@ a:hover {
 
 .lab-workspace::placeholder {
   color: var(--muted);
+}
+
+.lab-design-flow {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  overflow-x: auto;
+  margin: 8px 0 24px;
+  padding: 4px 2px 14px;
+  scroll-snap-type: x proximity;
+}
+
+.lab-design-step {
+  flex: 0 0 225px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  scroll-snap-align: start;
+}
+
+.lab-design-step span,
+.lab-design-step strong {
+  display: block;
+}
+
+.lab-design-step span {
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.lab-design-step strong {
+  margin-top: 5px;
+  font-size: 1.05rem;
+}
+
+.lab-design-step p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.lab-design-arrow {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--accent);
+  font-size: 1.35rem;
+  font-weight: 900;
 }
 
 .lab-drawing-board {

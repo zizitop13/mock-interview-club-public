@@ -117,6 +117,22 @@ for (const button of document.querySelectorAll('[data-copy-diagram]')) {
   });
 }
 
+for (const button of document.querySelectorAll('[data-copy-lab-note]')) {
+  button.addEventListener('click', () => {
+    const note = document.getElementById(button.dataset.copyTarget);
+    copyText(note?.value ?? '', button);
+  });
+}
+
+for (const button of document.querySelectorAll('[data-copy-lab-summary]')) {
+  button.addEventListener('click', () => {
+    const summary = [...document.querySelectorAll('[data-lab-stage-title]')]
+      .map((note) => `${note.dataset.labStageTitle}\n\n${note.value.trim()}`)
+      .join('\n\n');
+    copyText(summary, button);
+  });
+}
+
 async function copyText(value, button) {
   try {
     await navigator.clipboard.writeText(value);
