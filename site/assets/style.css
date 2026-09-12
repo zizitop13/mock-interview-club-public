@@ -516,6 +516,83 @@ a:hover {
   font-weight: 750;
 }
 
+.lab-prompt {
+  position: relative;
+  margin: 0 0 30px;
+  padding: 24px 58px 24px 24px;
+  border: 1px solid rgba(255, 157, 66, 0.62);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 157, 66, 0.14), var(--panel));
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+}
+
+.lab-prompt h2 {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+
+.lab-prompt p:last-child {
+  margin-bottom: 0;
+}
+
+.lab-prompt-icon {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.lab-workspace-label {
+  display: block;
+  margin: 18px 0 9px;
+  font-weight: 800;
+}
+
+.lab-workspace {
+  display: block;
+  width: 100%;
+  min-height: 190px;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  outline: none;
+  color: var(--text);
+  background: var(--panel);
+  font: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.lab-workspace:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.lab-workspace::placeholder {
+  color: var(--muted);
+}
+
+.lab-drawing-board {
+  overflow: hidden;
+  width: 100%;
+  height: min(680px, 76vh);
+  min-height: 480px;
+  margin: 20px 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.lab-drawing-board iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .navigation-group {
   margin: 30px 0 -14px;
   color: var(--accent);
@@ -791,6 +868,15 @@ a:hover {
     width: min(100% - 32px, 760px);
     margin: 0 auto;
     padding-top: 82px;
+  }
+
+  .lab-prompt {
+    padding: 20px 50px 20px 20px;
+  }
+
+  .lab-drawing-board {
+    height: 68vh;
+    min-height: 430px;
   }
 }
 

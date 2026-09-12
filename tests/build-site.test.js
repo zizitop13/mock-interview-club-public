@@ -37,7 +37,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       'utf8',
     );
     const designLab = await readFile(
-      path.join(outputDirectory, 'labs', 'design', 'template-lab.md'),
+      path.join(outputDirectory, 'labs', 'design', 'shopify-inventory-reservations.md'),
       'utf8',
     );
 
@@ -124,6 +124,12 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(licenseServerSolution, /kind: "Lab solution"/);
     assert.match(licenseServerSolution, /paired_url: "\/labs\/coding\/floating-license-server\/"/);
     assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'coding').labs.length, 1);
+    assert.match(designLab, /permalink: "\/labs\/design\/shopify-inventory-reservations\/"/);
+    assert.match(designLab, /class="lab-prompt"/);
+    assert.equal((designLab.match(/class="lab-workspace"/g) ?? []).length, 8);
+    assert.match(designLab, /https:\/\/excalidraw\.com\/\?embed=true&amp;theme=dark/);
+    assert.match(designLab, /Functional requirements&lt;br\/&gt;3 min/);
+    assert.match(designLab, /Deep dives&lt;br\/&gt;15 min/);
     assert.match(designLab, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.match(designLab, /data-copy-diagram/);
     const topicTitles = navigation.topics.map(({ title }) => title);
