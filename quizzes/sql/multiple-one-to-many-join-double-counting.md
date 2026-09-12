@@ -1,6 +1,6 @@
 ---
 id: sql-multiple-one-to-many-join-double-counting
-status: draft
+status: published
 ---
 
 ## Question
