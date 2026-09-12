@@ -1,5 +1,7 @@
 # Inventory reservations — Full solution
 
+> 🚧 **Draft:** This solution is still being refined and may change.
+
 This is one complete, correctness-first design. It is not the only valid answer: an interviewer may change the scale, the reservation window, or the meaning of availability and lead the discussion toward different trade-offs.
 
 ## Functional requirements
