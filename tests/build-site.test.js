@@ -19,7 +19,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     const siteScript = await readFile(path.join(outputDirectory, 'assets', 'site.js'), 'utf8');
     const style = await readFile(path.join(outputDirectory, 'assets', 'style.css'), 'utf8');
     const brandIcon = await readFile(path.join(outputDirectory, 'assets', 'brand-icon.svg'), 'utf8');
-    const favicon = await readFile(path.join(outputDirectory, 'assets', 'favicon.png'));
+    const favicon = await readFile(path.join(outputDirectory, 'assets', 'favicon.svg'));
     const index = await readFile(path.join(outputDirectory, 'index.md'), 'utf8');
     const explanation = await readFile(
       path.join(outputDirectory, 'quizzes', 'kafka', 'partition-count-key-ordering-explain.md'),
