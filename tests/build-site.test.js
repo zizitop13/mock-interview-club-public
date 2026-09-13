@@ -53,7 +53,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       .reduce((total, track) => total + track.labs.length, 0);
 
     assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}\?v={{ site\.github\.build_revision/);
-    assert.match(layout, /rel="icon" type="image\/png" sizes="64x64" href="{{ '\/assets\/favicon\.png' \| relative_url }}/);
+    assert.match(layout, /rel="icon" type="image\/png" sizes="64x64" href="{{ '\/assets\/favicon\.svg' \| relative_url }}/);
     assert.match(layout, /class="brand-mark" src="{{ '\/assets\/brand-icon\.svg' \| relative_url }}/);
     assert.match(brandIcon, /viewBox="0 0 374 550"/);
     assert.equal(favicon.subarray(1, 4).toString(), 'PNG');
