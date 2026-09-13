@@ -1,6 +1,6 @@
 ---
 id: spring-transactional-self-invocation-autocommit
-status: draft
+status: published
 ---
 
 ## Question
