@@ -1,6 +1,6 @@
 ---
 id: hibernate-bulk-update-stale-persistence-context
-status: draft
+status: published
 ---
 
 ## Question
