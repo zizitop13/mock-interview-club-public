@@ -55,7 +55,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(layout, /type="module" src="{{ '\/assets\/auth\.js' \| relative_url }}\?v={{ site\.github\.build_revision/);
     assert.match(layout, /rel="icon" type="image\/png" sizes="64x64" href="{{ '\/assets\/favicon\.png' \| relative_url }}/);
     assert.match(layout, /class="brand-mark" src="{{ '\/assets\/brand-icon\.svg' \| relative_url }}/);
-    assert.match(brandIcon, /viewBox="0 0 374 550"/);
+    assert.equal(brandIcon, await readFile(path.join(rootDirectory, 'site', 'assets', 'brand-icon.svg'), 'utf8'));
     assert.equal(favicon.subarray(1, 4).toString(), 'PNG');
     assert.equal((layout.match(/data-auth-provider=/g) ?? []).length, 4);
     assert.match(layout, /data-auth-provider="google"/);
