@@ -1,6 +1,6 @@
 ---
 id: rest-if-match-lost-update
-status: draft
+status: published
 ---
 
 ## Question
