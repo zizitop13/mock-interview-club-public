@@ -1,6 +1,6 @@
 ---
 id: reactive-blocking-jdbc-source-scheduling
-status: draft
+status: published
 ---
 
 ## Question
