@@ -1,6 +1,6 @@
 ---
 id: messaging-consumer-inbox-redelivery
-status: draft
+status: published
 ---
 
 ## Question
