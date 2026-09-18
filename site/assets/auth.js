@@ -56,6 +56,8 @@ if (root) {
   const quizStatisticsTotal = quizStatistics?.querySelector('[data-quiz-statistics-total]');
   const quizStatisticRows = [...(quizStatistics?.querySelectorAll('[data-quiz-stat-option]') ?? [])];
   const quizListItems = [...document.querySelectorAll('[data-quiz-list-item][data-quiz-id][data-correct-answer]')];
+  const feedbackSummary = document.querySelector('[data-feedback-summary][data-quiz-id]');
+  const feedbackSummaryRatings = [...(feedbackSummary?.querySelectorAll('[data-feedback-summary-rating]') ?? [])];
   const feedback = document.querySelector('[data-quiz-feedback][data-quiz-id]');
   const feedbackSubmit = feedback?.querySelector('[data-feedback-submit]');
   const feedbackStatus = feedback?.querySelector('[data-feedback-status]');
@@ -272,6 +274,44 @@ if (root) {
     if (feedbackStatus) feedbackStatus.textContent = message;
   }
 
+  function feedbackStatisticsReference(quizId) {
+    return doc(database, 'quizFeedbackStats', quizId);
+  }
+
+  function validFeedbackRatingValues() {
+    return new Set(feedbackSummaryRatings.map((rating) => rating.dataset.feedbackSummaryRating));
+  }
+
+  function readFeedbackCounts(snapshot) {
+    const storedCounts = snapshot.exists() ? snapshot.data().counts ?? {} : {};
+    return new Map(feedbackSummaryRatings.map((rating) => {
+      const value = rating.dataset.feedbackSummaryRating;
+      const count = storedCounts[value];
+      return [value, Number.isSafeInteger(count) && count >= 0 ? count : 0];
+    }));
+  }
+
+  function renderFeedbackSummary(counts) {
+    for (const rating of feedbackSummaryRatings) {
+      const value = rating.dataset.feedbackSummaryRating;
+      const count = counts.get(value) ?? 0;
+      const label = rating.querySelector('.visually-hidden')?.textContent ?? value;
+      rating.querySelector('[data-feedback-summary-count]').textContent = String(count);
+      rating.title = `${label}: ${count}`;
+      rating.setAttribute('aria-label', `${label}: ${count}`);
+    }
+  }
+
+  async function loadFeedbackSummary() {
+    if (!feedbackSummary) return;
+    try {
+      const snapshot = await getDoc(feedbackStatisticsReference(feedbackSummary.dataset.quizId));
+      renderFeedbackSummary(readFeedbackCounts(snapshot));
+    } catch {
+      // Keep the zero state when aggregate reads are not available yet.
+    }
+  }
+
   function showSignInPrompt(target, action) {
     if (!target) return;
     const button = document.createElement('button');
@@ -478,13 +518,39 @@ if (root) {
     setFeedbackEnabled(false);
     showFeedbackStatus('Saving feedback…');
     try {
-      await setDoc(feedbackReference(user), {
-        ratings,
-        comment,
-        updatedAt: serverTimestamp(),
+      const counts = await runTransaction(database, async (transaction) => {
+        const voteReference = feedbackReference(user);
+        const statisticsReference = feedbackStatisticsReference(feedback.dataset.quizId);
+        const voteSnapshot = await transaction.get(voteReference);
+        const statisticsSnapshot = await transaction.get(statisticsReference);
+        const validRatings = validFeedbackRatingValues();
+        const previousRatings = new Set(
+          (voteSnapshot.exists() ? voteSnapshot.data().ratings ?? [] : [])
+            .filter((rating) => validRatings.has(rating)),
+        );
+        const nextRatings = new Set(ratings);
+        const updatedCounts = readFeedbackCounts(statisticsSnapshot);
+
+        for (const rating of validRatings) {
+          const previousValue = previousRatings.has(rating) ? 1 : 0;
+          const nextValue = nextRatings.has(rating) ? 1 : 0;
+          updatedCounts.set(rating, Math.max(0, (updatedCounts.get(rating) ?? 0) + nextValue - previousValue));
+        }
+
+        transaction.set(voteReference, {
+          ratings,
+          comment,
+          updatedAt: serverTimestamp(),
+        });
+        transaction.set(statisticsReference, {
+          counts: Object.fromEntries(updatedCounts),
+          updatedAt: serverTimestamp(),
+        });
+        return updatedCounts;
       });
       if (currentUser?.uid !== user.uid) return;
       setSavedFeedback(currentFeedback);
+      renderFeedbackSummary(counts);
       showFeedbackStatus('Feedback saved. Thank you!');
     } catch (error) {
       if (currentUser?.uid !== user.uid) return;
@@ -504,6 +570,7 @@ if (root) {
     rating.addEventListener('change', updateFeedbackSubmit);
   }
   feedbackComment?.addEventListener('input', updateFeedbackSubmit);
+  loadFeedbackSummary();
 
   signOutButton?.addEventListener('click', async () => {
     setBusy(true);

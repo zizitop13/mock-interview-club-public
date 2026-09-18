@@ -68,21 +68,9 @@ function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explan
   ].join('\n')).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
 }
 
-function formatQuizFeedback(quizId) {
-  const ratings = [
-    ['code-smells', 'Code smells'],
-    ['good', 'Good'],
-    ['hard', 'Hard'],
-    ['too-easy', 'Too easy'],
-    ['too-hard', 'Too hard'],
-    ['boring', 'Boring'],
-    ['brilliant', 'Brilliant'],
-    ['over-complicated', 'Overcomplicated'],
-    ['wrong-answer', 'Wrong answer'],
-    ['incorrect-question', 'Incorrect question'],
-  ];
-  const choices = ratings.map(([value, label]) =>
-    `  <label class="quiz-feedback-choice"><input type="checkbox" value="${value}" data-feedback-rating> <span>${label}</span></label>`
+function formatQuizFeedback(quizId, ratings) {
+  const choices = ratings.map(({ value, label, emoji }) =>
+    `  <label class="quiz-feedback-choice"><input type="checkbox" value="${escapeHtml(value)}" data-feedback-rating> <span aria-hidden="true">${emoji}</span> <span>${escapeHtml(label)}</span></label>`
   ).join('\n');
   return [
     '<section class="quiz-feedback" data-quiz-feedback data-quiz-id="' + escapeHtml(quizId) + '">',
@@ -100,7 +88,7 @@ function formatQuizFeedback(quizId) {
   ].join('\n');
 }
 
-function pageFrontmatter({ title, topic, kind, url, pairedUrl = '', pairedAuthRequired = false }) {
+function pageFrontmatter({ title, topic, kind, url, quizId = '', pairedUrl = '', pairedAuthRequired = false }) {
   return [
     '---',
     'layout: default',
@@ -108,6 +96,7 @@ function pageFrontmatter({ title, topic, kind, url, pairedUrl = '', pairedAuthRe
     `topic: ${yamlString(topic)}`,
     `kind: ${yamlString(kind)}`,
     `permalink: ${yamlString(url)}`,
+    quizId ? `quiz_id: ${yamlString(quizId)}` : '',
     pairedUrl ? `paired_url: ${yamlString(pairedUrl)}` : '',
     pairedAuthRequired ? 'paired_auth_required: true' : '',
     '---',
@@ -182,6 +171,7 @@ async function loadLabs(rootDirectory) {
 
 export async function buildSite({ rootDirectory = process.cwd(), outputDirectory = path.join(rootDirectory, '.site-source') } = {}) {
   const [quizzes, labs] = await Promise.all([loadQuizzes(rootDirectory), loadLabs(rootDirectory)]);
+  const feedbackRatings = JSON.parse(await readFile(path.join(rootDirectory, 'site', '_data', 'feedback_ratings.json'), 'utf8'));
   const latestQuiz = findLatestQuiz(quizzes, rootDirectory);
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
@@ -199,8 +189,9 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     const destination = path.join(outputDirectory, 'quizzes', quiz.topic);
     const quizContent = transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`));
     await mkdir(destination, { recursive: true });
-    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl })}${quizContent}\n`);
-    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n\n${formatQuizFeedback(`${quiz.topic}--${quiz.slug}`)}\n`);
+    const quizId = `${quiz.topic}--${quiz.slug}`;
+    await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, quizId })}${quizContent}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, quizId, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n\n${formatQuizFeedback(quizId, feedbackRatings)}\n`);
     if (quiz.filePath === latestQuiz?.filePath) latestQuizContent = quizContent;
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
     topics.get(quiz.topic).quizzes.push({
