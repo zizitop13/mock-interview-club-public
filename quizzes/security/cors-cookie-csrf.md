@@ -1,6 +1,6 @@
 ---
 id: security-cors-cookie-csrf
-status: draft
+status: published
 ---
 
 ## Question
