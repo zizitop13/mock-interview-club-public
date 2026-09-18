@@ -17,6 +17,16 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -410,6 +420,32 @@ body:has(.stage-dot-navigation) .main {
   font-size: clamp(2rem, 5vw, 3.3rem);
   line-height: 1.08;
   letter-spacing: -0.035em;
+}
+
+.quiz-feedback-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.quiz-feedback-summary-item {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  min-width: 36px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: 0.9rem;
+}
+
+.quiz-feedback-summary-item small {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .paired-link {
@@ -1102,6 +1138,10 @@ body:has(.stage-dot-navigation) .main {
 .quiz-feedback-choice:has(input:checked) {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+.quiz-feedback-choice input + span {
+  font-size: 1.05rem;
 }
 
 .quiz-feedback-comment-label {

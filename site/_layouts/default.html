@@ -160,6 +160,17 @@
       <header class="page-header">
         {% if page.topic %}<p class="eyebrow">{{ page.topic }} · {{ page.kind }}</p>{% endif %}
         <h1>{{ page.title }}</h1>
+        {% if page.quiz_id %}
+          <div class="quiz-feedback-summary" data-feedback-summary data-quiz-id="{{ page.quiz_id }}" aria-label="Community ratings">
+            {% for rating in site.data.feedback_ratings %}
+              <span class="quiz-feedback-summary-item" data-feedback-summary-rating="{{ rating.value }}" title="{{ rating.label }}: 0">
+                <span aria-hidden="true">{{ rating.emoji }}</span>
+                <small data-feedback-summary-count>0</small>
+                <span class="visually-hidden">{{ rating.label }}</span>
+              </span>
+            {% endfor %}
+          </div>
+        {% endif %}
         {% if page.paired_url %}
           {% if page.kind == 'Quiz' %}
             <a class="paired-link" href="{{ page.paired_url | relative_url }}">Read the detailed explanation →</a>

@@ -1,0 +1,14 @@
+[
+  { "value": "code-smells", "label": "Code smells", "emoji": "🦨" },
+  { "value": "good", "label": "Good", "emoji": "👍" },
+  { "value": "hard", "label": "Hard", "emoji": "💪" },
+  { "value": "easy", "label": "Easy", "emoji": "🙂" },
+  { "value": "too-easy", "label": "Too easy", "emoji": "🥱" },
+  { "value": "too-hard", "label": "Too hard", "emoji": "🤯" },
+  { "value": "boring", "label": "Boring", "emoji": "😴" },
+  { "value": "brilliant", "label": "Brilliant", "emoji": "💡" },
+  { "value": "over-complicated", "label": "Overcomplicated", "emoji": "🧩" },
+  { "value": "wrong-answer", "label": "Wrong answer", "emoji": "❌" },
+  { "value": "incorrect-question", "label": "Incorrect question", "emoji": "⚠️" },
+  { "value": "confusing-description", "label": "Confusing description", "emoji": "😵‍💫" }
+]
