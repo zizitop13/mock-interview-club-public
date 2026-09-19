@@ -177,3 +177,14 @@ Paste your notes from stages 1–3 into the board, then develop the design from 
 ## Further reading after the interview
 
 The exercise was inspired by [Shopify inventory reservations](https://www.hellointerview.com/learn/system-design/in-the-wild/shopify-inventory-reservations). Read it only after completing the lab if you want to compare your design with a production case study.
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
