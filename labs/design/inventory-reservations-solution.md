@@ -1,7 +1,5 @@
 # Inventory reservations — Full solution
 
-> 🚧 **Draft:** This solution is still being refined and may change.
-
 This is one complete, correctness-first design. It is not the only valid answer: an interviewer may change the scale, the reservation window, or the meaning of availability and lead the discussion toward different trade-offs.
 
 ## Functional requirements
@@ -284,3 +282,15 @@ Load tests should concentrate traffic on one item, not only distribute it evenly
 The solution keeps one authoritative inventory owner per item, reserves inventory and records the hold atomically, treats payment as an external asynchronous operation, and resolves every terminal race with guarded state transitions. A simple conditional counter is the correct starting point. Independently lockable permits are an optimization for a measured hot-item bottleneck, not a replacement for the inventory ledger or business invariants.
 
 Further reading: [Shopify inventory reservations](https://www.hellointerview.com/learn/system-design/in-the-wild/shopify-inventory-reservations).
+
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>

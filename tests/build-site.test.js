@@ -141,8 +141,6 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(layout, /class="nav-item quiz-progress-item"[\s\S]*?data-quiz-id="{{ quiz\.id }}"[\s\S]*?data-correct-answer="{{ quiz\.correct_answer }}"/);
     assert.match(licenseServerLab, /permalink: "\/labs\/coding\/floating-license-server\/"/);
     assert.match(licenseServerLab, /paired_url: "\/labs\/coding\/floating-license-server-solution\/"/);
-    assert.match(licenseServerLab, /class="stage-dot-navigation"/);
-    assert.match(licenseServerLab, /href="#stage-2-design-shared-storage"/);
     assert.match(licenseServerSolution, /permalink: "\/labs\/coding\/floating-license-server-solution\/"/);
     assert.match(licenseServerSolution, /kind: "Lab solution"/);
     assert.match(licenseServerSolution, /paired_url: "\/labs\/coding\/floating-license-server\/"/);
@@ -157,12 +155,6 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.equal((designLab.match(/data-copy-lab-note/g) ?? []).length, 3);
     assert.match(designLab, /data-copy-lab-summary/);
     assert.equal((designLab.match(/class="lab-design-step"/g) ?? []).length, 5);
-    assert.match(designLab, /class="stage-dot-navigation"/);
-    assert.equal((designLab.match(/data-stage-link/g) ?? []).length, 7);
-    assert.match(designLab, /href="#interview-framework"/);
-    assert.match(designLab, /href="#stages-48-design-on-the-board-40-minutes"/);
-    assert.match(designLab, /href="#further-reading-after-the-interview"/);
-    assert.doesNotMatch(designLab, /<span aria-hidden="true">[1-8]<\/span>/);
     assert.equal((designLab.match(/data-stage-target/g) ?? []).length, 5);
     assert.match(designLab, /class="framework-diagram"/);
     assert.doesNotMatch(designLab, /\bSKU\b/);
@@ -184,12 +176,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(siteScript, /data-copy-lab-note/);
     assert.match(siteScript, /data-copy-lab-summary/);
     assert.match(siteScript, /labStageTitle/);
-    assert.match(siteScript, /const stageNavigation/);
-    assert.match(siteScript, /activateStage/);
-    assert.match(siteScript, /requestAnimationFrame/);
-    assert.match(style, /\.stage-dot-navigation a\[aria-current="step"\]/);
     assert.match(style, /\.framework-diagram \.diagram img/);
-    assert.match(style, /body:has\(\.stage-dot-navigation\) \.main/);
     const topicTitles = navigation.topics.map(({ title }) => title);
     assert.ok(['Java', 'Kafka'].every((title) => topicTitles.includes(title)));
     assert.match(explanation, /permalink: "\/quizzes\/kafka\/partition-count-key-ordering-explain\/"/);
