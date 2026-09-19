@@ -292,6 +292,7 @@ if (root) {
   }
 
   function renderFeedbackSummary(counts) {
+    feedbackSummary.hidden = false;
     for (const rating of feedbackSummaryRatings) {
       const value = rating.dataset.feedbackSummaryRating;
       const count = counts.get(value) ?? 0;
@@ -306,9 +307,10 @@ if (root) {
     if (!feedbackSummary) return;
     try {
       const snapshot = await getDoc(feedbackStatisticsReference(feedbackSummary.dataset.quizId));
+      if (!snapshot.exists()) return;
       renderFeedbackSummary(readFeedbackCounts(snapshot));
     } catch {
-      // Keep the zero state when aggregate reads are not available yet.
+      // Keep unavailable aggregate data hidden.
     }
   }
 
