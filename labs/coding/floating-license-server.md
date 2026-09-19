@@ -1,10 +1,11 @@
 # Floating license server
 
-<nav class="stage-navigation" aria-label="Lab stages">
+<nav class="stage-dot-navigation" aria-label="Lab stages">
   <strong>Stages</strong>
   <a href="#stage-1-build-a-single-process-license-server">1. Build</a>
   <a href="#stage-2-design-shared-storage">2. Scale</a>
 </nav>
+
 
 ## Stage 1: Build a single-process license server
 
