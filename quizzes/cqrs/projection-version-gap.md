@@ -1,6 +1,6 @@
 ---
 id: cqrs-projection-version-gap
-status: draft
+status: published
 ---
 
 ## Question
