@@ -161,7 +161,7 @@
         {% if page.topic %}<p class="eyebrow">{{ page.topic }} · {{ page.kind }}</p>{% endif %}
         <h1>{{ page.title }}</h1>
         {% if page.quiz_id %}
-          <div class="quiz-feedback-summary" data-feedback-summary data-quiz-id="{{ page.quiz_id }}" aria-label="Community ratings">
+          <div class="quiz-feedback-summary" data-feedback-summary data-quiz-id="{{ page.quiz_id }}" aria-label="Community ratings" hidden>
             {% for rating in site.data.feedback_ratings %}
               <span class="quiz-feedback-summary-item" data-feedback-summary-rating="{{ rating.value }}" title="{{ rating.label }}: 0">
                 <span aria-hidden="true">{{ rating.emoji }}</span>

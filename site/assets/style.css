@@ -429,6 +429,10 @@ body:has(.stage-dot-navigation) .main {
   margin-top: 14px;
 }
 
+.quiz-feedback-summary[hidden] {
+  display: none;
+}
+
 .quiz-feedback-summary-item {
   display: inline-flex;
   gap: 3px;
