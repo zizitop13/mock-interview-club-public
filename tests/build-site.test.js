@@ -141,7 +141,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(layout, /class="nav-item quiz-progress-item"[\s\S]*?data-quiz-id="{{ quiz\.id }}"[\s\S]*?data-correct-answer="{{ quiz\.correct_answer }}"/);
     assert.match(licenseServerLab, /permalink: "\/labs\/coding\/floating-license-server\/"/);
     assert.match(licenseServerLab, /paired_url: "\/labs\/coding\/floating-license-server-solution\/"/);
-    assert.match(licenseServerLab, /class="stage-navigation"/);
+    assert.match(licenseServerLab, /class="stage-dot-navigation"/);
     assert.match(licenseServerLab, /href="#stage-2-design-shared-storage"/);
     assert.match(licenseServerSolution, /permalink: "\/labs\/coding\/floating-license-server-solution\/"/);
     assert.match(licenseServerSolution, /kind: "Lab solution"/);
