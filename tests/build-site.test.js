@@ -64,7 +64,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(layout, /id="auth-sign-in-dialog"[\s\S]*?data-auth-provider="google"[\s\S]*?data-auth-provider="github"/);
     assert.match(layout, /GitHub Pages logs visitors' IP addresses for security purposes/);
     assert.match(layout, /written feedback you submit/);
-    assert.match(layout, /data-feedback-summary data-quiz-id="{{ page\.quiz_id }}"/);
+    assert.match(layout, /data-feedback-summary data-quiz-id="{{ page\.quiz_id }}"[^>]+hidden/);
     assert.match(layout, /site\.data\.feedback_ratings/);
     assert.equal(feedbackRatings.length, 12);
     assert.deepEqual(feedbackRatings.slice(-2).map(({ value }) => value), ['incorrect-question', 'confusing-description']);
@@ -90,6 +90,8 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(authScript, /'quizFeedbackStats', quizId/);
     assert.match(authScript, /transaction\.set\(statisticsReference/);
     assert.match(authScript, /renderFeedbackSummary\(counts\)/);
+    assert.match(authScript, /if \(!snapshot\.exists\(\)\) return;/);
+    assert.match(authScript, /feedbackSummary\.hidden = false/);
     assert.match(authScript, /loadFeedbackSummary\(\)/);
     assert.match(authScript, /showExplanationLink\(true\)/);
     assert.match(authScript, /querySelectorAll\('\[data-auth-required-link\]'\)/);
@@ -120,6 +122,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(style, /\.quiz-answer-indicator\.is-incorrect \{/);
     assert.match(style, /\.latest-quiz \{/);
     assert.match(style, /\.quiz-feedback-summary \{/);
+    assert.match(style, /\.quiz-feedback-summary\[hidden\] \{/);
     assert.match(style, /\.quiz-feedback-summary-item small \{/);
     assert.match(style, /@media \(max-width: 860px\)[\s\S]*?\.sidebar \{[\s\S]*?padding-top: 76px;/);
     assert.match(style, /\.quiz-progress-item \.quiz-link \{[\s\S]*?grid-column: 2;/);
