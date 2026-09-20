@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -12,7 +13,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
-import java.util.stream.LongStream;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
@@ -66,9 +66,14 @@ class RequiresNewPoolStarvationTest {
         }
 
         private List<Future<?>> startCalls() {
-            return LongStream.range(0, REQUESTS)
-                    .mapToObj(id -> (Future<?>) executor.submit(() -> orders.place(id)))
-                    .toList();
+            List<Future<?>> calls = new ArrayList<>(REQUESTS);
+
+            for (long id = 0; id < REQUESTS; id++) {
+                long orderId = id;
+                calls.add(executor.submit(() -> orders.place(orderId)));
+            }
+
+            return calls;
         }
 
         private int activeConnections() {
