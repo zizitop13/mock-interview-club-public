@@ -24,6 +24,14 @@ npm test
 
 No npm dependencies are required. Node.js 20 or newer is sufficient.
 
+Every new quiz also has a runnable Maven module under `quiz-projects/<technology>/<topic>/<quiz-id>/`. The reproduction test must pass by asserting the problematic behavior, and a second test must prove the fix. Run every module with:
+
+```bash
+mvn -f quiz-projects/pom.xml test
+```
+
+The publisher runs the matching module before changing a draft to `published`. Set the optional `TELEGRAM_TEST_FAILURE_CHAT_ID` Actions secret to send a short failure notice to a separate Telegram chat; when it is absent, the workflow simply fails without sending a notice.
+
 ## Quiz library website
 
 GitHub Pages publishes the quiz library at <https://zizitop13.github.io/mock-interview-club-public/>. The site generator discovers `quizzes/<topic>/*.md`, creates topic-based navigation, and gives every quiz and detailed explanation a stable page. Fenced `mermaid` blocks are rendered as SVG images through Mermaid Ink.

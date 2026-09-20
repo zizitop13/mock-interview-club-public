@@ -12,6 +12,7 @@ import {
   loadQuizzes,
   markPublished,
 } from './quiz.js';
+import { testQuizProject } from './quiz-project-runner.js';
 
 function runGit(args, rootDirectory) {
   return execFileSync('git', args, {
@@ -44,10 +45,12 @@ export async function publishQuizzes({
   chatId = process.env.TELEGRAM_CHAT_ID,
   threadId = process.env.TELEGRAM_MESSAGE_THREAD_ID,
   siteBaseUrl = process.env.QUIZ_SITE_BASE_URL,
+  failureChatId = process.env.TELEGRAM_TEST_FAILURE_CHAT_ID,
   branch = process.env.GITHUB_REF_NAME ?? 'main',
   fetchImplementation = fetch,
   git = runGit,
   logger = console,
+  projectTester = testQuizProject,
 } = {}) {
   if (!token || !chatId || !siteBaseUrl) {
     throw new Error('TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, and QUIZ_SITE_BASE_URL must all be configured');
@@ -72,6 +75,21 @@ export async function publishQuizzes({
   if (drafts.length === 0) {
     logger.info('No draft quizzes found.');
     return [];
+  }
+
+  for (const quiz of drafts) {
+    try {
+      await projectTester(quiz, { rootDirectory, logger });
+    } catch (error) {
+      if (failureChatId) {
+        await callTelegram('sendMessage', {
+          chat_id: failureChatId,
+          text: `Runnable tests failed for ${quiz.id}. Publication was not reserved.`,
+        }, { token, fetchImplementation });
+      }
+
+      throw error;
+    }
   }
 
   const results = [];

@@ -20,6 +20,8 @@
 ## Publishing
 
 - Never add Telegram credentials, chat identifiers, or secret values to tracked files.
+- Before reserving a draft quiz for publication, run the Maven tests in its matching runnable quiz project. A failed or missing project must leave the quiz as `draft`.
+- `TELEGRAM_TEST_FAILURE_CHAT_ID` is optional. When configured, report runnable-project test failures there; never require it for publication.
 - Keep Telegram polls anonymous, single-answer, non-revotable, and in their original answer order.
 - Preserve the reserve-before-send sequence: commit and push `status: published` before calling Telegram.
 - Preserve Telegram publication order for illustrated quizzes: Mermaid image, supporting text/code when present, then poll.
@@ -43,3 +45,13 @@
 - Use fenced code examples and fenced `mermaid` diagrams where appropriate; never include secrets or private data.
 - Labs are website content only and must not be processed by the Telegram quiz publisher.
 - Run `npm test` and `npm run build:site` after adding or editing labs.
+
+## Runnable quiz projects
+
+- Store runnable quiz code under `quiz-projects/<technology>/<topic>/<quiz-id>/`; the leaf directory must exactly match the quiz frontmatter `id`.
+- Use one Maven module per quiz and register every module in `quiz-projects/pom.xml`.
+- Keep related modules together, for example Spring persistence examples under `quiz-projects/spring/hibernate/`.
+- Every module must contain one green test that deterministically proves the problematic behavior and one green test that proves a practical fix. Never commit an intentionally failing test as the reproduction.
+- Prefer an embedded dependency such as H2 when the behavior is independent of a particular server. Put reusable external stacks at `quiz-projects/compose/<postgresql|kafka|redis>/compose.yml`, with optional `init/` and `.env.example` files beside it. Use a module-local `compose.yml` only when its setup cannot be shared.
+- A new draft quiz is publishable only when exactly one matching Maven module exists and `mvn test` succeeds for it.
+- Run all runnable examples with `mvn -f quiz-projects/pom.xml test`.
