@@ -6,8 +6,10 @@ on:
       - main
     paths:
       - 'quizzes/*/*.md'
+      - 'quiz-projects/**'
       - '.github/workflows/publish-quizzes.yml'
       - 'scripts/quiz.js'
+      - 'scripts/quiz-project-runner.js'
       - 'scripts/publish-quizzes.js'
   workflow_dispatch:
 
@@ -33,6 +35,13 @@ jobs:
         with:
           node-version: 24
 
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: oracle
+          java-version: '27'
+          cache: maven
+
       - name: Validate quizzes and run tests
         run: |
           npm run validate
@@ -48,5 +57,6 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
+          TELEGRAM_TEST_FAILURE_CHAT_ID: ${{ secrets.TELEGRAM_TEST_FAILURE_CHAT_ID }}
           QUIZ_SITE_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: npm run publish:quizzes

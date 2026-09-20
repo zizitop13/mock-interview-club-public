@@ -84,4 +84,5 @@ sequenceDiagram
 10. In the companion, copy the correct answer letter and text exactly, include a thorough explanation and at least one fenced code example with a language, and explain every incorrect answer in order using `- a. Explanation` bullets.
 11. Write credible distractors of approximately equal length. Avoid making the correct answer consistently longer than the alternatives.
 12. Never reset a `published` quiz to `draft`: the status records that its single publication attempt has already been reserved. Never treat its `-explain.md` companion as a publishable quiz.
-13. Run `npm run validate` and `npm test` before finishing.
+13. Create a matching Maven module at `quiz-projects/<technology>/<topic>/<quiz-id>/`, where the leaf directory exactly matches the quiz `id`. Add a green reproduction test and a green fix test, then register the module in `quiz-projects/pom.xml`.
+14. Run `npm run validate`, `npm test`, and `mvn -f quiz-projects/pom.xml test` before finishing.

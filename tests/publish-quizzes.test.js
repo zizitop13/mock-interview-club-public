@@ -29,6 +29,7 @@ function telegramSuccess(messageId) {
 }
 
 const logger = { info() {} };
+const projectTester = async () => {};
 
 test('pushes the consumed marker before sending context and poll', async () => {
   const root = await createFixtureDirectory();
@@ -43,6 +44,9 @@ test('pushes the consumed marker before sending context and poll', async () => {
       branch: 'main',
       threadId: '42',
       logger,
+      async projectTester() {
+        events.push('project:test');
+      },
       git(args) {
         events.push(`git:${args[0]}`);
       },
@@ -74,7 +78,14 @@ test('pushes the consumed marker before sending context and poll', async () => {
       },
     });
 
-    assert.deepEqual(events, ['git:add', 'git:commit', 'git:push', 'telegram:sendMessage', 'telegram:sendPoll']);
+    assert.deepEqual(events, [
+      'project:test',
+      'git:add',
+      'git:commit',
+      'git:push',
+      'telegram:sendMessage',
+      'telegram:sendPoll',
+    ]);
     assert.deepEqual(results, [{ id: 'java-read-write-lock-downgrade', messageId: 42 }]);
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -94,6 +105,7 @@ test('rejects an invalid forum topic before consuming a publication attempt', as
       branch: 'main',
         threadId: 'not-a-topic',
         logger,
+        projectTester,
       }),
       /must be a positive integer/,
     );
@@ -117,6 +129,7 @@ test('sends a Mermaid image before supporting context and poll', async () => {
       branch: 'main',
       threadId: '42',
       logger,
+      projectTester,
       git(args) {
         events.push(`git:${args[0]}`);
       },
@@ -159,6 +172,7 @@ test('does not call Telegram when pushing the publication marker fails', async (
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
       branch: 'main',
         logger,
+        projectTester,
         git(args) {
           if (args[0] === 'push') {
             throw new Error('push rejected');
@@ -177,6 +191,49 @@ test('does not call Telegram when pushing the publication marker fails', async (
   }
 });
 
+test('reports a project-test failure without consuming the draft', async () => {
+  const root = await createFixtureDirectory();
+  const telegramCalls = [];
+  let gitCalled = false;
+
+  try {
+    await assert.rejects(
+      () => publishQuizzes({
+        rootDirectory: root,
+        token: 'secret-test-token',
+        chatId: '@mockingbird',
+        failureChatId: '@quiz_test_failures',
+        siteBaseUrl: 'https://example.test/mock-interview-club-public',
+        branch: 'main',
+        logger,
+        async projectTester() {
+          throw new Error('reproduction failed');
+        },
+        git() {
+          gitCalled = true;
+        },
+        async fetchImplementation(url, request) {
+          telegramCalls.push({ method: url.split('/').at(-1), payload: JSON.parse(request.body) });
+          return telegramSuccess(44);
+        },
+      }),
+      /reproduction failed/,
+    );
+
+    assert.equal(gitCalled, false);
+    assert.match(await readFile(path.join(root, fixturePath), 'utf8'), /^status: draft$/m);
+    assert.deepEqual(telegramCalls, [{
+      method: 'sendMessage',
+      payload: {
+        chat_id: '@quiz_test_failures',
+        text: 'Runnable tests failed for java-read-write-lock-downgrade. Publication was not reserved.',
+      },
+    }]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('never retries a published quiz after Telegram delivery fails', async () => {
   const root = await createFixtureDirectory();
   let calls = 0;
@@ -190,6 +247,7 @@ test('never retries a published quiz after Telegram delivery fails', async () =>
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
       branch: 'main',
         logger,
+        projectTester,
         git() {},
         async fetchImplementation() {
           calls += 1;
@@ -206,6 +264,7 @@ test('never retries a published quiz after Telegram delivery fails', async () =>
       siteBaseUrl: 'https://example.test/mock-interview-club-public',
       branch: 'main',
       logger,
+      projectTester,
       git() {},
       async fetchImplementation() {
         calls += 1;
