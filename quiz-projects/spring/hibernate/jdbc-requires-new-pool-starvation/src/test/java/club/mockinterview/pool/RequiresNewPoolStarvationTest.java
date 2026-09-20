@@ -67,7 +67,7 @@ class RequiresNewPoolStarvationTest {
 
         private List<Future<?>> startCalls() {
             return LongStream.range(0, REQUESTS)
-                    .mapToObj(id -> executor.submit(() -> orders.place(id)))
+                    .mapToObj(id -> (Future<?>) executor.submit(() -> orders.place(id)))
                     .toList();
         }
 
