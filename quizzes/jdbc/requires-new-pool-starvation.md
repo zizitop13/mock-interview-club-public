@@ -1,6 +1,6 @@
 ---
 id: jdbc-requires-new-pool-starvation
-status: draft
+status: published
 ---
 
 ## Question
