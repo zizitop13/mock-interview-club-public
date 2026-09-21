@@ -22,5 +22,6 @@
 
   <modules>
     <module>spring/hibernate/jdbc-requires-new-pool-starvation</module>
+    <module>java/observability/observability-mdc-executor-context</module>
   </modules>
 </project>
