@@ -1,6 +1,6 @@
 ---
 id: observability-mdc-executor-context
-status: draft
+status: published
 ---
 
 ## Question
