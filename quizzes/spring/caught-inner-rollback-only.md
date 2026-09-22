@@ -1,6 +1,6 @@
 ---
 id: spring-caught-inner-rollback-only
-status: draft
+status: published
 ---
 
 ## Question
