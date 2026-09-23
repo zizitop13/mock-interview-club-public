@@ -1,6 +1,6 @@
 ---
 id: observability-fleet-percentile-aggregation
-status: draft
+status: published
 ---
 
 ## Question
