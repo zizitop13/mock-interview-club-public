@@ -24,5 +24,6 @@
     <module>spring/hibernate/jdbc-requires-new-pool-starvation</module>
     <module>spring/transactions/spring-caught-inner-rollback-only</module>
     <module>java/observability/observability-mdc-executor-context</module>
+    <module>java/observability/observability-fleet-percentile-aggregation</module>
   </modules>
 </project>
