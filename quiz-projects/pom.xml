@@ -25,5 +25,6 @@
     <module>spring/transactions/spring-caught-inner-rollback-only</module>
     <module>java/observability/observability-mdc-executor-context</module>
     <module>java/observability/observability-fleet-percentile-aggregation</module>
+    <module>java/resilience/resilience-layered-retry-amplification</module>
   </modules>
 </project>
