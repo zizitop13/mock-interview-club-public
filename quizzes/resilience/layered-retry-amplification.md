@@ -1,6 +1,6 @@
 ---
 id: resilience-layered-retry-amplification
-status: draft
+status: published
 ---
 
 ## Question
