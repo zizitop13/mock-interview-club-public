@@ -1,6 +1,6 @@
 ---
 id: kubernetes-prestop-grace-budget
-status: draft
+status: published
 ---
 
 ## Question
