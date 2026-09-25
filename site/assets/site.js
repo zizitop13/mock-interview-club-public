@@ -28,8 +28,13 @@ function displayQuizAnswer(answers, selected) {
     checkbox.checked = checkbox === selected;
   }
 
-  for (const row of answers.querySelectorAll('.quiz-answer-row')) {
+  const rows = [...answers.querySelectorAll('.quiz-answer-row')];
+
+  for (const row of rows) {
     row.classList.remove('is-correct', 'is-incorrect');
+    const verdict = row.querySelector('[data-answer-verdict]');
+    verdict.hidden = true;
+    verdict.textContent = '';
   }
 
   const result = answers.parentElement.querySelector('[data-answer-result]');
@@ -40,10 +45,26 @@ function displayQuizAnswer(answers, selected) {
 
   const row = selected.closest('.quiz-answer-row');
   const correct = row.dataset.correct === 'true';
+  const correctRow = rows.find((answerRow) => answerRow.dataset.correct === 'true');
+  const selectedVerdict = row.querySelector('[data-answer-verdict]');
+  const correctVerdict = correctRow?.querySelector('[data-answer-verdict]');
+  const correctLetter = correctRow?.querySelector('[data-quiz-answer]')?.value;
+
   row.classList.add(correct ? 'is-correct' : 'is-incorrect');
+  selectedVerdict.textContent = correct ? 'Your answer: correct' : 'Your answer: incorrect';
+  selectedVerdict.hidden = false;
+
+  if (!correct && correctRow && correctVerdict) {
+    correctRow.classList.add('is-correct');
+    correctVerdict.textContent = 'Correct answer';
+    correctVerdict.hidden = false;
+  }
+
   result.classList.toggle('is-correct', correct);
   result.classList.toggle('is-incorrect', !correct);
-  result.querySelector('[data-answer-status]').textContent = correct ? 'Correct!' : 'Incorrect';
+  result.querySelector('[data-answer-status]').textContent = correct
+    ? 'Correct!'
+    : `Incorrect. Correct answer: ${correctLetter}.`;
 }
 
 function setQuizAnswerLocked(answers, locked) {
