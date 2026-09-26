@@ -27,5 +27,6 @@
     <module>java/observability/observability-fleet-percentile-aggregation</module>
     <module>java/resilience/resilience-layered-retry-amplification</module>
     <module>java/kubernetes/kubernetes-prestop-grace-budget</module>
+    <module>java/caching/caching-fleet-single-flight</module>
   </modules>
 </project>
