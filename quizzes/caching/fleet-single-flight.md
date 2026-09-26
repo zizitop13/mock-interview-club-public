@@ -1,6 +1,6 @@
 ---
 id: caching-fleet-single-flight
-status: draft
+status: published
 ---
 
 ## Question
