@@ -1,6 +1,6 @@
 ---
 id: concurrency-wallet-reservation-lost-update
-status: draft
+status: published
 ---
 
 ## Question
