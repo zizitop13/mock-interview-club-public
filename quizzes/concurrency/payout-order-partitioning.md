@@ -1,6 +1,6 @@
 ---
 id: concurrency-payout-order-partitioning
-status: draft
+status: published
 ---
 
 ## Question
