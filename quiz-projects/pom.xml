@@ -29,5 +29,6 @@
     <module>java/kubernetes/kubernetes-prestop-grace-budget</module>
     <module>java/caching/caching-fleet-single-flight</module>
     <module>java/concurrency/concurrency-wallet-reservation-lost-update</module>
+    <module>java/concurrency/concurrency-payout-order-partitioning</module>
   </modules>
 </project>
