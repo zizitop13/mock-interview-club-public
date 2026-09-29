@@ -1,6 +1,6 @@
 ---
 id: concurrency-card-authorisation-common-pool
-status: draft
+status: published
 ---
 
 ## Question
