@@ -30,5 +30,6 @@
     <module>java/caching/caching-fleet-single-flight</module>
     <module>java/concurrency/concurrency-wallet-reservation-lost-update</module>
     <module>java/concurrency/concurrency-payout-order-partitioning</module>
+    <module>java/concurrency/concurrency-card-authorisation-common-pool</module>
   </modules>
 </project>
