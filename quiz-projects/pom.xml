@@ -31,5 +31,6 @@
     <module>java/concurrency/concurrency-wallet-reservation-lost-update</module>
     <module>java/concurrency/concurrency-payout-order-partitioning</module>
     <module>java/concurrency/concurrency-card-authorisation-common-pool</module>
+    <module>java/concurrency/concurrency-seat-reservation-lock-granularity</module>
   </modules>
 </project>
