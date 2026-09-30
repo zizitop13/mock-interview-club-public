@@ -1,6 +1,6 @@
 ---
 id: concurrency-seat-reservation-lock-granularity
-status: draft
+status: published
 ---
 
 ## Question
