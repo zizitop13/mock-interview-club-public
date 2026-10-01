@@ -175,7 +175,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
   const latestQuiz = findLatestQuiz(quizzes, rootDirectory);
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
-  await cp(path.join(rootDirectory, 'site'), outputDirectory, { recursive: true });
+  await cp(path.join(rootDirectory, 'site'), outputDirectory, { recursive: true });\n  await rm(path.join(outputDirectory, 'react'), { recursive: true, force: true });
 
   const topics = new Map();
   let latestQuizContent = '';
