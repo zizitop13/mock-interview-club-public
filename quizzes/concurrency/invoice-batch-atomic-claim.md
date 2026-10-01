@@ -1,6 +1,6 @@
 ---
 id: concurrency-invoice-batch-atomic-claim
-status: draft
+status: published
 ---
 
 ## Question
