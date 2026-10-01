@@ -175,7 +175,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
   const latestQuiz = findLatestQuiz(quizzes, rootDirectory);
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
-  await cp(path.join(rootDirectory, 'site'), outputDirectory, { recursive: true });\n  await rm(path.join(outputDirectory, 'react'), { recursive: true, force: true });
+  await cp(path.join(rootDirectory, 'site'), outputDirectory, { recursive: true });\n  await rm(path.join(outputDirectory, 'react'), { recursive: true, force: true });\n  await rm(path.join(outputDirectory, 'react'), { recursive: true, force: true });
 
   const topics = new Map();
   let latestQuizContent = '';
@@ -210,7 +210,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     const destination = path.join(outputDirectory, 'labs', lab.track);
     await mkdir(destination, { recursive: true });
     const pairedAuthRequired = lab.track === 'design' && lab.slug === 'inventory-reservations';
-    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url, pairedUrl: solutionUrl, pairedAuthRequired })}${transformMermaid(removeFirstHeading(source))}\n`);
+    await writeFile(path.join(destination, `${lab.slug}.md`), `${pageFrontmatter({ title: lab.title, topic: `${trackTitle} labs`, kind: 'Lab', url, pairedUrl: solutionUrl, pairedAuthRequired })}${transformMermaid(removeFirstHeading(source).replace(/<nav class=\"stage-dot-navigation\"[\\s\\S]*?<\\/nav>\\s*/g, ''))}\n`);
     if (lab.solutionFilePath) {
       const solutionSource = await readFile(path.join(rootDirectory, lab.solutionFilePath), 'utf8');
       await writeFile(path.join(destination, `${lab.slug}-solution.md`), `${pageFrontmatter({ title: `${lab.title} solution`, topic: `${trackTitle} labs`, kind: 'Lab solution', url: solutionUrl, pairedUrl: url })}${transformMermaid(removeFirstHeading(solutionSource))}\n`);
