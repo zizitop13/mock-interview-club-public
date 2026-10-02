@@ -30,6 +30,14 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       path.join(outputDirectory, 'quizzes', 'java', 'read-write-lock-downgrade.md'),
       'utf8',
     );
+    const runnableExplanations = await Promise.all([
+      ['jdbc', 'requires-new-pool-starvation'],
+      ['observability', 'mdc-executor-context'],
+      ['spring', 'caught-inner-rollback-only'],
+    ].map(([topic, slug]) => readFile(
+      path.join(outputDirectory, 'quizzes', topic, `${slug}-explain.md`),
+      'utf8',
+    )));
 
     const licenseServerLab = await readFile(
       path.join(outputDirectory, 'labs', 'coding', 'floating-license-server.md'),
@@ -111,6 +119,9 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(siteScript, /setQuizAnswerLocked/);
     assert.match(siteScript, /checkbox\.disabled = locked/);
     assert.match(siteScript, /quiz-answer-save-failed/);
+    assert.match(siteScript, /correctRow\.classList\.add\('is-correct'\)/);
+    assert.match(siteScript, /Your answer: incorrect/);
+    assert.match(siteScript, /Incorrect\. Correct answer:/);
     assert.doesNotMatch(authScript, /EmailAuthProvider|signInAnonymously|createUserWithEmailAndPassword/);
     assert.match(style, /\.auth-panel \{/);
     assert.match(style, /\.inline-sign-in-link \{/);
@@ -118,6 +129,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(style, /\.quiz-statistics-track \{/);
     assert.match(style, /\.quiz-answer-indicator\.is-correct \{/);
     assert.match(style, /\.quiz-answer-indicator\.is-incorrect \{/);
+    assert.match(style, /\.quiz-answer-verdict \{/);
     assert.match(style, /\.latest-quiz \{/);
     assert.match(style, /\.quiz-feedback-summary \{/);
     assert.match(style, /\.quiz-feedback-summary-item small \{/);
@@ -198,6 +210,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(explanation, /https:\/\/mermaid\.ink\/svg\/pako:/);
     assert.doesNotMatch(explanation, /```mermaid/);
     assert.equal((quiz.match(/<input type="checkbox" data-quiz-answer value="[a-d]">/g) ?? []).length, 4);
+    assert.equal((quiz.match(/data-answer-verdict hidden/g) ?? []).length, 4);
     assert.match(quiz, /quiz_id: "java--read-write-lock-downgrade"/);
     assert.equal((quiz.match(/<div class="quiz-answer-row" data-correct="(?:true|false)">/g) ?? []).length, 4);
     assert.match(quiz, /<div class="quiz-answers" data-quiz-id="java--read-write-lock-downgrade">/);
@@ -218,6 +231,18 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(explanation, /data-copy-diagram/);
     assert.match(explanation, /<template class="diagram-source">sequenceDiagram/);
     assert.match(explanation, /<img[^>]+>[\s\S]*?<button[^>]+data-copy-diagram>/);
+    assert.doesNotMatch(explanation, /## Runnable example/);
+    const projectPaths = [
+      'spring/hibernate/jdbc-requires-new-pool-starvation',
+      'java/observability/observability-mdc-executor-context',
+      'spring/transactions/spring-caught-inner-rollback-only',
+    ];
+    runnableExplanations.forEach((runnableExplanation, index) => {
+      assert.match(runnableExplanation, /## Runnable example/);
+      assert.ok(runnableExplanation.includes(
+        `https://github.com/zizitop13/mock-interview-club-public/tree/main/quiz-projects/${projectPaths[index]}`,
+      ));
+    });
   } finally {
     await rm(outputDirectory, { recursive: true, force: true });
   }

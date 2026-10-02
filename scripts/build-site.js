@@ -54,7 +54,9 @@ function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explan
   const answerRows = answers.map(({ letter, text }) => [
     `<div class="quiz-answer-row" data-correct="${letter === correctAnswer}">`,
     '  <label class="quiz-answer">', `    <input type="checkbox" data-quiz-answer value="${letter}">`,
-    `    <span><strong>${letter}.</strong> ${escapeHtml(text)}</span>`, '  </label>', '</div>',
+    `    <span class="quiz-answer-text"><strong>${letter}.</strong> ${escapeHtml(text)}</span>`,
+    '    <strong class="quiz-answer-verdict" data-answer-verdict hidden></strong>',
+    '  </label>', '</div>',
   ].join('\n')).join('\n');
   return markdown.replace(/## Answers\s*\n[\s\S]*?(?=<!--\s*correct-answer:)/, [
     '## Answers', '', `<div class="quiz-answers" data-quiz-id="${escapeHtml(quizId)}">\n${answerRows}\n</div>`,
@@ -66,6 +68,26 @@ function formatQuizAnswers(markdown, answers, correctAnswer, explanation, explan
     '</section>', '',
     formatQuizStatistics(answers, quizId), '',
   ].join('\n')).replace(/<details>[\s\S]*?<\/details>\s*$/, '');
+}
+
+async function loadQuizProjects(rootDirectory) {
+  const source = await readFile(path.join(rootDirectory, 'quiz-projects', 'pom.xml'), 'utf8');
+  const projects = new Map();
+
+  for (const match of source.matchAll(/<module>\s*([^<]+?)\s*<\/module>/g)) {
+    const modulePath = match[1].replaceAll('\\', '/');
+    const quizId = path.posix.basename(modulePath);
+
+    if (projects.has(quizId)) throw new Error(`duplicate runnable quiz project: ${quizId}`);
+    projects.set(quizId, modulePath);
+  }
+
+  return projects;
+}
+
+function formatQuizProjectReference(modulePath) {
+  const url = `https://github.com/zizitop13/mock-interview-club-public/tree/main/quiz-projects/${modulePath}`;
+  return `## Runnable example\n\n[Open the tested code module on GitHub →](${url})`;
 }
 
 function formatQuizFeedback(quizId, ratings) {
@@ -170,7 +192,11 @@ async function loadLabs(rootDirectory) {
 }
 
 export async function buildSite({ rootDirectory = process.cwd(), outputDirectory = path.join(rootDirectory, '.site-source') } = {}) {
-  const [quizzes, labs] = await Promise.all([loadQuizzes(rootDirectory), loadLabs(rootDirectory)]);
+  const [quizzes, labs, quizProjects] = await Promise.all([
+    loadQuizzes(rootDirectory),
+    loadLabs(rootDirectory),
+    loadQuizProjects(rootDirectory),
+  ]);
   const feedbackRatings = JSON.parse(await readFile(path.join(rootDirectory, 'site', '_data', 'feedback_ratings.json'), 'utf8'));
   const latestQuiz = findLatestQuiz(quizzes, rootDirectory);
   await rm(outputDirectory, { recursive: true, force: true });
@@ -188,10 +214,13 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     ]);
     const destination = path.join(outputDirectory, 'quizzes', quiz.topic);
     const quizContent = transformMermaid(formatQuizAnswers(removeFrontmatter(quizSource), quiz.answers, quiz.correctAnswer, quiz.explanation, explanationUrl, `${quiz.topic}--${quiz.slug}`));
+    const projectReference = quizProjects.has(quiz.id)
+      ? `\n\n${formatQuizProjectReference(quizProjects.get(quiz.id))}`
+      : '';
     await mkdir(destination, { recursive: true });
     const quizId = `${quiz.topic}--${quiz.slug}`;
     await writeFile(path.join(destination, `${quiz.slug}.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Quiz', url: quizUrl, quizId })}${quizContent}\n`);
-    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, quizId, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}\n\n${formatQuizFeedback(quizId, feedbackRatings)}\n`);
+    await writeFile(path.join(destination, `${quiz.slug}-explain.md`), `${pageFrontmatter({ title: quizTitle, topic: topicTitle, kind: 'Detailed explanation', url: explanationUrl, quizId, pairedUrl: quizUrl })}${transformMermaid(removeFirstHeading(explanationSource))}${projectReference}\n\n${formatQuizFeedback(quizId, feedbackRatings)}\n`);
     if (quiz.filePath === latestQuiz?.filePath) latestQuizContent = quizContent;
     if (!topics.has(quiz.topic)) topics.set(quiz.topic, { slug: quiz.topic, title: topicTitle, quizzes: [] });
     topics.get(quiz.topic).quizzes.push({
