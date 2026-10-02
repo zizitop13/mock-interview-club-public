@@ -1,6 +1,6 @@
 ---
 id: concurrency-loyalty-redemption-atomic-budget
-status: draft
+status: published
 ---
 
 ## Question
