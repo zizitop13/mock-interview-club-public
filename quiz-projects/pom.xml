@@ -34,5 +34,6 @@
     <module>java/concurrency/concurrency-seat-reservation-lock-granularity</module>
     <module>java/concurrency/concurrency-invoice-batch-atomic-claim</module>
     <module>java/concurrency/concurrency-loyalty-redemption-atomic-budget</module>
+    <module>java/concurrency/concurrency-merchant-capture-deadline-budget</module>
   </modules>
 </project>
