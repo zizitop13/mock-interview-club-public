@@ -1,6 +1,6 @@
 ---
 id: concurrency-merchant-capture-deadline-budget
-status: draft
+status: published
 ---
 
 ## Question
