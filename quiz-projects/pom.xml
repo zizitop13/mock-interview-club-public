@@ -35,5 +35,6 @@
     <module>java/concurrency/concurrency-invoice-batch-atomic-claim</module>
     <module>java/concurrency/concurrency-loyalty-redemption-atomic-budget</module>
     <module>java/concurrency/concurrency-merchant-capture-deadline-budget</module>
+    <module>java/concurrency/concurrency-trading-quote-monotonic-publish</module>
   </modules>
 </project>
