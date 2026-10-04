@@ -1,6 +1,6 @@
 ---
 id: concurrency-trading-quote-monotonic-publish
-status: draft
+status: published
 ---
 
 ## Question
