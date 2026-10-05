@@ -1,6 +1,6 @@
 ---
 id: concurrency-inventory-reservation-shared-stock
-status: draft
+status: published
 ---
 
 ## Question
