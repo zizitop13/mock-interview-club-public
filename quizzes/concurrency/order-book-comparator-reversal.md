@@ -1,6 +1,6 @@
 ---
 id: concurrency-order-book-comparator-reversal
-status: draft
+status: published
 ---
 
 ## Question
