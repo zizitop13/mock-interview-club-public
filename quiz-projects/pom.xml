@@ -38,5 +38,6 @@
     <module>java/concurrency/concurrency-trading-quote-monotonic-publish</module>
     <module>java/concurrency/concurrency-inventory-reservation-shared-stock</module>
     <module>java/concurrency/concurrency-order-book-comparator-reversal</module>
+    <module>java/concurrency/concurrency-rate-limiter-monotonic-refill</module>
   </modules>
 </project>
