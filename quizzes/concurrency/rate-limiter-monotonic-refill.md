@@ -1,6 +1,6 @@
 ---
 id: concurrency-rate-limiter-monotonic-refill
-status: draft
+status: published
 ---
 
 ## Question
