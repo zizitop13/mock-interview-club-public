@@ -1,6 +1,6 @@
 ---
 id: concurrency-fraud-cache-immutable-snapshot
-status: draft
+status: published
 ---
 
 ## Question
