@@ -39,5 +39,6 @@
     <module>java/concurrency/concurrency-inventory-reservation-shared-stock</module>
     <module>java/concurrency/concurrency-order-book-comparator-reversal</module>
     <module>java/concurrency/concurrency-rate-limiter-monotonic-refill</module>
+    <module>java/concurrency/concurrency-fraud-cache-immutable-snapshot</module>
   </modules>
 </project>
