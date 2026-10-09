@@ -1,6 +1,6 @@
 ---
 id: concurrency-subscription-renewal-single-flight
-status: draft
+status: published
 ---
 
 ## Question
