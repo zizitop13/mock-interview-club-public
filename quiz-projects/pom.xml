@@ -40,5 +40,6 @@
     <module>java/concurrency/concurrency-order-book-comparator-reversal</module>
     <module>java/concurrency/concurrency-rate-limiter-monotonic-refill</module>
     <module>java/concurrency/concurrency-fraud-cache-immutable-snapshot</module>
+    <module>java/concurrency/concurrency-subscription-renewal-single-flight</module>
   </modules>
 </project>
