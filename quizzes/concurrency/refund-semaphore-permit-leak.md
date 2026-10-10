@@ -1,6 +1,6 @@
 ---
 id: concurrency-refund-semaphore-permit-leak
-status: draft
+status: published
 ---
 
 ## Question
