@@ -41,5 +41,6 @@
     <module>java/concurrency/concurrency-rate-limiter-monotonic-refill</module>
     <module>java/concurrency/concurrency-fraud-cache-immutable-snapshot</module>
     <module>java/concurrency/concurrency-subscription-renewal-single-flight</module>
+    <module>java/concurrency/concurrency-refund-semaphore-permit-leak</module>
   </modules>
 </project>
