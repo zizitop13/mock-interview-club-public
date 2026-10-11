@@ -1,6 +1,6 @@
 ---
 id: concurrency-invoice-settlement-virtual-thread-transaction
-status: draft
+status: published
 ---
 
 ## Question
