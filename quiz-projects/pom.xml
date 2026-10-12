@@ -43,5 +43,6 @@
     <module>java/concurrency/concurrency-subscription-renewal-single-flight</module>
     <module>java/concurrency/concurrency-refund-semaphore-permit-leak</module>
     <module>java/concurrency/concurrency-invoice-settlement-virtual-thread-transaction</module>
+    <module>java/concurrency/concurrency-delivery-slots-virtual-thread-connection-leak</module>
   </modules>
 </project>
