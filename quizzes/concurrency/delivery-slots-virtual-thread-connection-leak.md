@@ -1,6 +1,6 @@
 ---
 id: concurrency-delivery-slots-virtual-thread-connection-leak
-status: draft
+status: published
 ---
 
 ## Question
