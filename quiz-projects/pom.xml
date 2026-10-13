@@ -44,5 +44,6 @@
     <module>java/concurrency/concurrency-refund-semaphore-permit-leak</module>
     <module>java/concurrency/concurrency-invoice-settlement-virtual-thread-transaction</module>
     <module>java/concurrency/concurrency-delivery-slots-virtual-thread-connection-leak</module>
+    <module>java/concurrency/concurrency-exchange-rate-async-bulkhead-lifetime</module>
   </modules>
 </project>
