@@ -1,6 +1,6 @@
 ---
 id: concurrency-exchange-rate-async-bulkhead-lifetime
-status: draft
+status: published
 ---
 
 ## Question
