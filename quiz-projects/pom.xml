@@ -45,5 +45,6 @@
     <module>java/concurrency/concurrency-invoice-settlement-virtual-thread-transaction</module>
     <module>java/concurrency/concurrency-delivery-slots-virtual-thread-connection-leak</module>
     <module>java/concurrency/concurrency-exchange-rate-async-bulkhead-lifetime</module>
+    <module>java/concurrency/concurrency-payout-broker-callback-blocking-sql</module>
   </modules>
 </project>
