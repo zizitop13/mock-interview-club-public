@@ -1,6 +1,6 @@
 ---
 id: concurrency-payout-broker-callback-blocking-sql
-status: draft
+status: published
 ---
 
 ## Question
