@@ -1,6 +1,6 @@
 ---
 id: concurrency-merchant-capture-hedged-idempotency
-status: draft
+status: published
 ---
 
 ## Question
