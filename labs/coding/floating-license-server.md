@@ -1,11 +1,5 @@
 # Floating license server
 
-<nav class="stage-dot-navigation" aria-label="Page sections" data-stage-navigation>
-  <a href="#stage-1-build-a-single-process-license-server" data-stage-link aria-label="Stage 1: Build a single-process license server" aria-current="step"><span class="stage-dot-tooltip">Build a single-process license server</span></a>
-  <a href="#stage-2-design-shared-storage" data-stage-link aria-label="Stage 2: Design shared storage"><span class="stage-dot-tooltip">Design shared storage</span></a>
-</nav>
-
-
 ## Stage 1: Build a single-process license server
 
 ### Business task

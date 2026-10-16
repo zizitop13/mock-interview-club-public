@@ -20,16 +20,6 @@ flowchart LR
 
 The numbers above are interview assumptions for a Black Friday spike, not a prescribed architecture. Ask the interviewer for any other constraint you need.
 
-<nav class="stage-dot-navigation" aria-label="Page sections" data-stage-navigation>
-  <a href="#inventory-design-prompt" data-stage-link aria-label="Problem: Design an inventory reservation system" aria-current="step"><span class="stage-dot-tooltip">Design an inventory reservation system</span></a>
-  <a href="#interview-framework" data-stage-link aria-label="Interview framework"><span class="stage-dot-tooltip">Interview framework</span></a>
-  <a href="#stage-1-functional-requirements-3-minutes" data-stage-link aria-label="Stage 1: Functional requirements"><span class="stage-dot-tooltip">Functional requirements</span></a>
-  <a href="#stage-2-non-functional-requirements-2-minutes" data-stage-link aria-label="Stage 2: Non-functional requirements"><span class="stage-dot-tooltip">Non-functional requirements</span></a>
-  <a href="#stage-3-sizing-2-minutes" data-stage-link aria-label="Stage 3: Sizing"><span class="stage-dot-tooltip">Sizing</span></a>
-  <a href="#stages-48-design-on-the-board-40-minutes" data-stage-link aria-label="Stages 4–8: Design on the board"><span class="stage-dot-tooltip">Stages 4–8: Design on the board</span></a>
-  <a href="#further-reading-after-the-interview" data-stage-link aria-label="Further reading after the interview"><span class="stage-dot-tooltip">Further reading after the interview</span></a>
-</nav>
-
 ## Interview framework
 
 <div class="framework-diagram" markdown="1">
