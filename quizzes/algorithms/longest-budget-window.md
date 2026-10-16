@@ -1,6 +1,6 @@
 ---
 id: algorithms-longest-budget-window
-status: draft
+status: published
 ---
 
 ## Question
