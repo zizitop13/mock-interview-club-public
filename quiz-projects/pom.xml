@@ -47,5 +47,6 @@
     <module>java/concurrency/concurrency-exchange-rate-async-bulkhead-lifetime</module>
     <module>java/concurrency/concurrency-payout-broker-callback-blocking-sql</module>
     <module>java/concurrency/concurrency-merchant-capture-hedged-idempotency</module>
+    <module>java/algorithms/algorithms-longest-budget-window</module>
   </modules>
 </project>
