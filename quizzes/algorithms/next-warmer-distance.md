@@ -1,6 +1,6 @@
 ---
 id: algorithms-next-warmer-distance
-status: draft
+status: published
 ---
 
 ## Question
