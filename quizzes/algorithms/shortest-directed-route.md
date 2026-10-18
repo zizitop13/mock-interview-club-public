@@ -1,6 +1,6 @@
 ---
 id: algorithms-shortest-directed-route
-status: draft
+status: published
 ---
 
 ## Question
