@@ -49,5 +49,6 @@
     <module>java/concurrency/concurrency-merchant-capture-hedged-idempotency</module>
     <module>java/algorithms/algorithms-longest-budget-window</module>
     <module>java/algorithms/algorithms-next-warmer-distance</module>
+    <module>java/algorithms/algorithms-shortest-directed-route</module>
   </modules>
 </project>
