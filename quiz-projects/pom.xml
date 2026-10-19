@@ -50,5 +50,6 @@
     <module>java/algorithms/algorithms-longest-budget-window</module>
     <module>java/algorithms/algorithms-next-warmer-distance</module>
     <module>java/algorithms/algorithms-shortest-directed-route</module>
+    <module>java/algorithms/algorithms-minimum-shipping-capacity</module>
   </modules>
 </project>
