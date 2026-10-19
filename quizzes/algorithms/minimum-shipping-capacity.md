@@ -1,6 +1,6 @@
 ---
 id: algorithms-minimum-shipping-capacity
-status: draft
+status: published
 ---
 
 ## Question
