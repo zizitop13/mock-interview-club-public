@@ -115,7 +115,7 @@ test('rejects invalid frontmatter, excessively long questions, and long options'
   );
 });
 
-test('creates an anonymous, ordered, non-revotable Telegram quiz payload', () => {
+test('creates an anonymous, ordered, non-revotable Telegram quiz with no expiration', () => {
   const quiz = parseQuiz(fixture, fixturePath);
   const payload = createPollPayload(quiz, '@mockingbird');
 
@@ -126,7 +126,8 @@ test('creates an anonymous, ordered, non-revotable Telegram quiz payload', () =>
   assert.equal(payload.allows_multiple_answers, false);
   assert.equal(payload.allows_revoting, false);
   assert.equal(payload.shuffle_options, false);
-  assert.equal(payload.open_period, 86_400);
+  assert.equal(Object.hasOwn(payload, 'open_period'), false);
+  assert.equal(Object.hasOwn(payload, 'close_date'), false);
   assert.deepEqual(payload.options, quiz.answers.map(({ text }) => ({ text })));
   assert.equal(Object.hasOwn(payload, 'message_thread_id'), false);
 });
