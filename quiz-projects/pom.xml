@@ -51,5 +51,6 @@
     <module>java/algorithms/algorithms-next-warmer-distance</module>
     <module>java/algorithms/algorithms-shortest-directed-route</module>
     <module>java/algorithms/algorithms-minimum-shipping-capacity</module>
+    <module>java/algorithms/algorithms-merge-sorted-sequences</module>
   </modules>
 </project>
