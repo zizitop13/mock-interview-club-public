@@ -1,6 +1,6 @@
 ---
 id: algorithms-merge-sorted-sequences
-status: draft
+status: published
 ---
 
 ## Question
