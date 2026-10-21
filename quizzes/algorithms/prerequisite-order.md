@@ -1,6 +1,6 @@
 ---
 id: algorithms-prerequisite-order
-status: draft
+status: published
 ---
 
 ## Question
