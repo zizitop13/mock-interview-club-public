@@ -1,6 +1,6 @@
 ---
 id: algorithms-bipartite-groups
-status: draft
+status: published
 ---
 
 ## Question
