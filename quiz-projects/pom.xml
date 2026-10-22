@@ -53,5 +53,6 @@
     <module>java/algorithms/algorithms-minimum-shipping-capacity</module>
     <module>java/algorithms/algorithms-merge-sorted-sequences</module>
     <module>java/algorithms/algorithms-prerequisite-order</module>
+    <module>java/algorithms/algorithms-bipartite-groups</module>
   </modules>
 </project>
