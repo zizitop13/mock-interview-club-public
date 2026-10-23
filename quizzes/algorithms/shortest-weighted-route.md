@@ -1,6 +1,6 @@
 ---
 id: algorithms-shortest-weighted-route
-status: draft
+status: published
 ---
 
 ## Question
