@@ -55,5 +55,6 @@
     <module>java/algorithms/algorithms-prerequisite-order</module>
     <module>java/algorithms/algorithms-bipartite-groups</module>
     <module>java/algorithms/algorithms-shortest-weighted-route</module>
+    <module>java/language/java-switch-expression-return-vs-yield</module>
   </modules>
 </project>
