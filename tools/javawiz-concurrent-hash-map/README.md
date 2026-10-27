@@ -11,4 +11,6 @@ The recorder saves gzip-compressed, selected JavaWiz heap states under `site/vis
 
 `MapProbe` only observes the table and coordinates real threads. It never writes map internals. The resize harness holds selected bucket monitors to expose allocation, splitting, a forwarded read, two active resizers, and publication of the new table. Source assertions and recording tests verify these states. JDK classes remain unchanged.
 
+The recorder pins `-XX:ActiveProcessorCount=2` for both JavaWiz and its debuggee. With `NCPU=1`, the map claims the entire transfer range, leaving no helper work. The explicit setting makes the recording reproducible even on a single-CPU host. Use the same flag when running the resize harness directly.
+
 The page is copied as a standalone static asset. It has `noindex` metadata and no incoming links from the site’s homepage or navigation.

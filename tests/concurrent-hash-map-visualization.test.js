@@ -22,6 +22,11 @@ test('recordings identify JavaWiz and match the executable Java sources', async 
     assert.equal(recording.backendSha256, 'fcce45ac5e5e18e9e9905ef82ba09b1caf6aa50d08f6450914835193c9785aa3');
     assert.equal(recording.upstreamCommit, 'e512b3c8dbb99c70b2a087f7a1751be8854046b6');
     assert.equal(recording.runtime, 'Eclipse Temurin 25.0.5+8');
+    assert.equal(recording.processorCount, 2);
+    for (const frame of recording.frames) {
+      const mapClass = frame.state.loadedClasses.find((item) => item.class === 'java.util.concurrent.ConcurrentHashMap');
+      assert.equal(mapClass.staticFields.find((item) => item.name === 'NCPU').value.primitiveValue, '2');
+    }
     const source = await readFile(path.join(rootDirectory, 'tools/javawiz-concurrent-hash-map', `${className}.java`), 'utf8');
     assert.equal(recording.source, source);
     assert.equal(recording.sourceSha256, createHash('sha256').update(source).digest('hex'));
