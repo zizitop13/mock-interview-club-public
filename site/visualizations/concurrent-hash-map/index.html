@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="Replay real ConcurrentHashMap heap snapshots recorded with JavaWiz: put, get, compute, and cooperative resizing.">
+  <title>ConcurrentHashMap in motion · Mock Interview Club</title>
+  <link rel="icon" href="../../assets/favicon.png">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./player.js"></script>
+</head>
+<body>
+  <main>
+    <header class="masthead">
+      <a class="brand" href="../../"><img src="../../assets/brand-icon.svg" alt=""><span>Mock Interview Club</span></a>
+      <span class="recorded"><span aria-hidden="true"></span> Recorded with JavaWiz</span>
+    </header>
+    <section class="intro">
+      <p class="eyebrow">INSIDE THE JDK</p>
+      <h1>ConcurrentHashMap<br><span>in motion.</span></h1>
+      <p class="subtitle">Follow the buckets, the locks, and the “we’ve moved” notes.</p>
+      <p class="provenance">Real JDK 25 execution. JavaWiz heap snapshots. Play at your own pace.</p>
+    </section>
+    <nav class="scenarios" aria-label="Choose an operation">
+      <button type="button" data-scenario="put" aria-pressed="true"><span>01</span> put()</button>
+      <button type="button" data-scenario="get" aria-pressed="false"><span>02</span> get()</button>
+      <button type="button" data-scenario="compute" aria-pressed="false"><span>03</span> compute()</button>
+      <button type="button" data-scenario="resize" aria-pressed="false"><span>04</span> Cooperative resize</button>
+    </nav>
+    <section class="player" aria-label="Execution replay" aria-busy="true">
+      <div class="player-header"><div><span class="eyebrow" id="operation">PUT</span><h2 id="step-title">Loading recording…</h2></div><span class="step-count" id="step-count"></span></div>
+      <p class="step-explanation" id="step-explanation" role="status" aria-live="polite">The recording is loading.</p>
+      <div class="metrics" id="metrics" aria-label="Recorded map state"></div>
+      <div class="visual-header"><div class="legend"><span><i class="node-dot"></i> Entry</span><span><i class="forward-dot"></i> Forwarding node</span><span><i class="reserve-dot"></i> Reservation</span></div><label id="all-buckets-control" hidden><input type="checkbox" id="all-buckets"> Show all buckets</label></div>
+      <div class="tables" id="tables"></div>
+      <div class="results" id="results" aria-label="Returned values"></div>
+      <div class="controls">
+        <button class="primary" type="button" id="play" disabled>▶ Play</button>
+        <button type="button" id="previous" aria-label="Previous checkpoint" disabled>←</button>
+        <button type="button" id="next" aria-label="Next checkpoint" disabled>→</button>
+        <label class="speed-label" for="speed">Speed <select id="speed"><option value="3500">0.5×</option><option value="2000" selected>1×</option><option value="1100">2×</option></select></label>
+        <button type="button" id="reset" disabled>↺ Reset</button>
+      </div>
+      <label class="visually-hidden" for="timeline">Execution checkpoint</label><input type="range" id="timeline" min="0" max="0" value="0" disabled>
+      <div class="checkpoints" id="checkpoints" aria-label="Execution checkpoints"></div>
+    </section>
+    <section class="underneath">
+      <div class="code-panel"><div class="panel-heading"><h2>At this checkpoint</h2><span id="line-label"></span></div><pre id="active-code"><code></code></pre><p id="mechanism"></p></div>
+      <div class="note-panel"><h2>What you’re watching</h2><p id="scenario-note"></p><p class="small">Movement is slowed down between recorded checkpoints. This is an explanation of observed states, not a CPU timeline.</p><a id="raw-trace" href="./recordings/put.json.gz" download>Download the JavaWiz recording ↗</a></div>
+    </section>
+    <details class="source-details"><summary>Java source used for this recording</summary><pre id="source"><code></code></pre></details>
+    <details class="source-details"><summary>How the recordings were made</summary><div class="methodology"><p>The unmodified JavaWiz 2.3.1 backend recorded the real <code>java.util.concurrent.ConcurrentHashMap</code> on Eclipse Temurin 25.0.5+8. The bucket view on this page reads those heap records; it does not run a JavaScript implementation of the map.</p><p>For resizing, the harness temporarily holds bucket monitors to stop two real writer threads at reproducible checkpoints. JavaWiz observes the main thread and the shared heap. The recording includes both active resize workers, forwarding nodes, a lookup during resizing, and the final table switch.</p><p>These are selected heap snapshots, not an instruction trace of every worker. The explanatory labels follow the OpenJDK implementation. Empty buckets also receive forwarding nodes during transfer.</p><p><a href="https://github.com/zizitop13/mock-interview-club-public/tree/main/tools/javawiz-concurrent-hash-map">Harness and recorder</a> · <a href="https://github.com/SSW-JKU/javawiz/tree/e512b3c8dbb99c70b2a087f7a1751be8854046b6">JavaWiz source</a> · <a href="https://github.com/openjdk/jdk25u/blob/jdk-25.0.5%2B8/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java">OpenJDK implementation</a></p></div></details>
+    <noscript><p class="error">Enable JavaScript to replay these recordings. The compressed JSON recordings remain available alongside this page.</p></noscript>
+    <footer><span>Mock Interview Club</span><span>JavaWiz 2.3.1 · OpenJDK 25</span></footer>
+  </main>
+</body>
+</html>
