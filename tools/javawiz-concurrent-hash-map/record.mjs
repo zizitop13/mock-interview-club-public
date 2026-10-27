@@ -22,7 +22,12 @@ const server = spawn(java, [
   '--add-exports', 'jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
   '--add-exports', 'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
   '-cp', `${path.resolve(backendDirectory)}/*`, 'at.jku.ssw.wsdebug.MainKt', String(port),
-], { stdio: ['ignore', 'pipe', 'pipe'] });
+], {
+  stdio: ['ignore', 'pipe', 'pipe'],
+  // JDI's debuggee inherits this setting too. NCPU=1 would claim the entire
+  // transfer range and leave no buckets for a second resizer to help with.
+  env: { ...process.env, JAVA_TOOL_OPTIONS: `${process.env.JAVA_TOOL_OPTIONS ?? ''} -XX:ActiveProcessorCount=2`.trim() },
+});
 server.stdout.on('data', (data) => log.push(data.toString()));
 server.stderr.on('data', (data) => log.push(data.toString()));
 server.on('error', (error) => { throw error; });
@@ -93,7 +98,7 @@ try {
     const recording = {
       schema: 1, generator: 'JavaWiz', generatorVersion: '2.3.1',
       upstreamCommit: 'e512b3c8dbb99c70b2a087f7a1751be8854046b6', backendSha256,
-      runtime: 'Eclipse Temurin 25.0.5+8', scenario: id,
+      runtime: 'Eclipse Temurin 25.0.5+8', processorCount: 2, scenario: id,
       source: content,
       sourceSha256: createHash('sha256').update(content).digest('hex'),
       traceStateCount: traceStates.length, frames,
