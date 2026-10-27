@@ -5,7 +5,7 @@ status: draft
 
 ## Question
 
-`addFuelSurcharge` adds 10%, but a heavy international parcel returns 40 instead of 44. What is the smallest correct fix?
+The compiler reports `attempt to return out of a switch expression`. What is the smallest correct fix?
 
 ```java
 static int shippingCost(Parcel parcel) {
@@ -35,6 +35,6 @@ d. Add `continue` after `return 40` so the method resumes below the switch.
 <details>
 <summary>Answer explanation</summary>
 
-`return` exits `shippingCost`, bypassing the surcharge. `yield 40` supplies the switch-expression value, assigns it to `base`, and continues below the switch.
+Java does not allow `return` to leave a method from inside a switch expression. `yield 40` supplies the value of that switch arm, assigns it to `base`, and continues below the switch.
 
 </details>
