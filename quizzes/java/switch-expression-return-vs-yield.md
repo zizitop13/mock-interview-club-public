@@ -1,6 +1,6 @@
 ---
 id: java-switch-expression-return-vs-yield
-status: draft
+status: published
 ---
 
 ## Question
