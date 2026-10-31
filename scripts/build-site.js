@@ -268,7 +268,7 @@ export async function buildSite({ rootDirectory = process.cwd(), outputDirectory
     ].join('\n')),
     '</ul>',
   ].join('\n'));
-  const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', formatLatestQuiz(latestQuiz, latestQuizContent), '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions. Sign in and answer to reveal each detailed explanation.', '', ...quizSections, ''].join('\n');
+  const index = ['---', 'layout: default', 'title: "Mock Interview Club"', 'kind: "Home"', '---', '', '**New quizzes are published daily.**', '', formatLatestQuiz(latestQuiz, latestQuizContent), '', '## Domain expertise', '', '[Market indexes]({{ \'/domain/market-indexes/\' | relative_url }}) — learn the arithmetic and explore the system-design implications.', '', '## Labs', '', 'Work through multi-stage coding and system-design exercises.', '', ...labSections, '', '## Quizzes', '', 'Practice with short interview questions. Sign in and answer to reveal each detailed explanation.', '', ...quizSections, ''].join('\n');
   await writeFile(path.join(outputDirectory, 'index.md'), index);
   return { outputDirectory, quizzes: quizzes.length, topics: navigation.topics.length, labs: labs.length, labTracks: navigation.lab_tracks.length };
 }

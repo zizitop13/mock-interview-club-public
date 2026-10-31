@@ -1317,3 +1317,8 @@ body:has(.stage-dot-navigation) .main {
   background: var(--accent);
   transition: width 180ms ease;
 }
+.index-lab { padding: 1.25rem; border: 1px solid #cbd5e1; border-radius: 12px; background: #f7f8fa; color: #172033; }
+.index-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.index-inputs label { display: grid; gap: .35rem; font-weight: 600; }
+.index-inputs input { width: 100%; padding: .5rem; border: 1px solid #94a3b8; border-radius: 6px; }
+#index-results { margin-top: 1rem; line-height: 1.7; }

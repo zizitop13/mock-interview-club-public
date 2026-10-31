@@ -118,6 +118,8 @@
       <input class="search" id="navigation-search" type="search" placeholder="Labs, Kafka, locks…" autocomplete="off">
 
       <nav class="navigation" aria-label="Content library">
+        <p class="navigation-group">Domain expertise</p>
+        <section class="topic" data-topic><h2>Finance</h2><div class="nav-item" data-nav-item data-search="domain expertise finance market indexes indices"><a class="quiz-link" href="{{ '/domain/market-indexes/' | relative_url }}">Market indexes</a></div></section>
         {% if site.data.navigation.lab_tracks.size > 0 %}
           <p class="navigation-group">Labs</p>
           {% for track in site.data.navigation.lab_tracks %}
