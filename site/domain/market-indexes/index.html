@@ -5,40 +5,31 @@ topic: Domain expertise
 kind: Interactive guide
 permalink: /domain/market-indexes/
 ---
-<p>Can a stock split halve an index even though nobody lost money? Work through a tiny basket, then design the system that keeps its history trustworthy. <strong>About 8 minutes.</strong></p>
-
-<h2>1. One basket, two ways to weigh it</h2>
-<p>An index is a rules-based measurement, not necessarily a portfolio you can buy. A <strong>price-weighted</strong> index gives a higher-priced share more influence. A <strong>capitalization-weighted</strong> index gives more influence to a company with greater price × eligible shares. Prices and shares below are fictional, in one currency; shares are in millions.</p>
-<p>Predict first: if A and B both rise by 10%, which one moves each index more? Change the numbers to test your intuition.</p>
-<div class="index-lab" id="index-lab">
-  <div class="index-inputs">
-    <label>A price <input type="number" id="price-a" min="0.01" max="10000" step="1" value="100"></label>
-    <label>A eligible shares (m) <input type="number" id="shares-a" min="0.01" max="10000" step="1" value="1"></label>
-    <label>B price <input type="number" id="price-b" min="0.01" max="10000" step="1" value="50"></label>
-    <label>B eligible shares (m) <input type="number" id="shares-b" min="0.01" max="10000" step="1" value="10"></label>
+<p>An index turns a basket of stocks into one number. Explore how its rules determine which stocks matter most.</p>
+<p><strong>Illustration only:</strong> company names are real; prices and eligible share counts are invented, not live market data. This is not an actual index or investment advice.</p>
+<h2>Build your index</h2>
+<p>Move a price slider, switch the weighting method, or add a company. Watch the index level and each stock’s influence change.</p>
+<section class="index-lab" id="index-lab" aria-label="Interactive index calculator">
+  <div class="index-type" role="group" aria-label="Index weighting method">
+    <button type="button" data-index-type="price" aria-pressed="true">Price weighted</button>
+    <button type="button" data-index-type="cap" aria-pressed="false">Market-cap weighted</button>
   </div>
-  <button type="button" id="reset-index">Reset basket</button>
-  <p id="index-error" role="alert" hidden>Enter positive values up to 10,000 in all four fields.</p>
-  <div id="index-results" aria-live="polite"></div>
-</div>
-<p>Here the initial price-index divisor is 2, so its starting value is the average price. The cap-index divisor is fixed at 6 (million currency units per point), giving a starting level of 100. Divisors stay fixed while you change prices or shares; changing shares here is a calculation experiment, not a modeled corporate action.</p>
-<details><summary>Check your prediction</summary><p>At the defaults, A has ⅔ of the price weight, but B has ⅚ of the cap weight. A 10% rise in just A or just B moves each index in proportion to that starting weight. A simultaneous 10% rise in both moves both indexes by 10%.</p></details>
-
-<h2>2. A split is not a market return</h2>
-<p>A 2-for-1 split changes A from $100 × 1 million shares to $50 × 2 million shares. Its market value remains $100 million. The cap-weighted numerator stays at 600, so its divisor stays 6 and the index stays 100.</p>
-<p>For the price-weighted index, the numerator falls from 150 to 100. Without adjustment its level would fall from 75 to 50. To preserve 75, set the new divisor to 100 ÷ 75 = 1⅓. Later price changes use that new divisor. Real corporate-action treatment depends on the methodology.</p>
-<details><summary>Recall: why adjust the divisor?</summary><p>To preserve continuity across a non-market change—not to erase an actual market movement. Changes in constituents and some other corporate actions may also require an adjustment.</p></details>
-
-<h2>3. Turn the arithmetic into a reliable system</h2>
-<p>A calculation needs a defined <strong>snapshot</strong>: constituent set, prices, eligible shares, currency conversion, divisor, methodology version and effective time. Decide whether inputs are last trade, bid/mid or closing prices, and what stale or missing prices mean. Float factors, caps and rebalancing rules vary by index. A price-return index and a total-return index also treat dividends differently.</p>
-<ol>
-  <li><strong>Ingest:</strong> identify source and instrument, validate prices, track source sequence numbers, detect gaps and reconcile or replay according to the feed contract. Do not assume timestamps alone establish a global order.</li>
-  <li><strong>Calculate:</strong> apply an accepted update to the correct versioned state. For a fixed cap basket, update the numerator by (new price − old price) × eligible shares; recalculate from the full snapshot to reconcile. Specify decimal precision and rounding.</li>
-  <li><strong>Commit and publish:</strong> atomically persist the input position, state, result and an outbox record in one database transaction, if they share a database. Relay the outbox at least once; downstream consumers deduplicate by index and version. Database atomicity alone does not make external delivery exactly once.</li>
-  <li><strong>Recover:</strong> replay from durable inputs and versioned reference data. Define late ticks, corrections, corporate-action effective times and whether historical values are revised; keep an audit trail and fence competing leaders.</li>
-</ol>
-<details><summary>Design challenge: a tick arrives twice after a crash. What must remain true?</summary><p>The same source event must not be applied twice, even if an outbox message is delivered twice. Persist the deduplication position with the state update; give outputs stable identities so consumers can deduplicate too. Gaps and corrections need their own explicit policy.</p></details>
-<h2>Take it with you</h2>
-<p><strong>Price chooses influence; eligible market value chooses influence; the divisor preserves continuity; a versioned snapshot makes the result reproducible.</strong></p>
-<p>Further reading: <a href="https://www.spglobal.com/spdji/en/methodology/article/index-mathematics-methodology/">S&amp;P Dow Jones Indices: Index Mathematics Methodology</a> and <a href="https://www.spglobal.com/spdji/en/research-insights/index-literacy/the-sp-500-and-the-dow/">The S&amp;P 500 and the Dow</a>.</p>
-<script src="{{ '/assets/market-indexes.js' | relative_url }}" defer></script>
+  <div class="index-overview"><div><span>Index level</span><strong id="index-level">100.00</strong><small>points</small></div><p id="index-description"></p></div>
+  <div id="index-stocks"></div>
+  <div class="index-actions"><label for="add-stock">Add a stock</label> <select id="add-stock"></select> <button type="button" id="add-stock-button">Add</button> <button type="button" id="reset-index">Reset</button></div>
+  <p class="index-note" id="index-formula" aria-live="polite"></p>
+</section>
+<p>The index starts at 100 points. Price changes keep the divisor fixed. Adding a stock adjusts the divisor to keep the level continuous, so adding a company is not mistaken for a market gain. Switching methods shows the current level under each method; their divisors are tracked separately. Eligible shares stay fixed in this example.</p>
+<h2>Why the divisor matters</h2>
+<p>Imagine a 2-for-1 split: a $100 share becomes two $50 shares. The company’s value is unchanged. In a cap-weighted index, price × shares stays the same. In a price-weighted index, the price sum falls, so the divisor must change to avoid a false drop. Actual treatments depend on the index methodology.</p>
+<h2>From calculation to system design</h2>
+<p>A reproducible result needs a versioned snapshot: prices, eligible shares, constituents, currency rates, divisor and methodology. Define stale prices, rounding, market hours and whether the index includes reinvested dividends.</p>
+<ul>
+  <li><strong>Ingest:</strong> validate source events, track sequence numbers, detect gaps and replay or reconcile according to the feed contract.</li>
+  <li><strong>Calculate:</strong> update the affected contribution and reconcile against a full calculation. Apply corporate actions at their defined effective time.</li>
+  <li><strong>Commit and publish:</strong> persist the accepted input position, calculation state and an outbox record atomically when they share a database. Relay at least once; consumers deduplicate outputs.</li>
+  <li><strong>Recover:</strong> replay durable inputs with versioned reference data. Define how late ticks and corrections affect published history, and fence competing leaders.</li>
+</ul>
+<p><strong>Remember:</strong> price or eligible market value determines influence; the divisor preserves continuity; versioned inputs make a result reproducible.</p>
+<p>Further reading: <a href="https://www.spglobal.com/spdji/en/methodology/article/index-mathematics-methodology/">S&amp;P Dow Jones Indices: Index Mathematics Methodology</a> · <a href="https://www.spglobal.com/spdji/en/research-insights/index-literacy/the-sp-500-and-the-dow/">The S&amp;P 500 and the Dow</a>.</p>
+<script type="module" src="{{ '/assets/market-indexes.js' | relative_url }}"></script>

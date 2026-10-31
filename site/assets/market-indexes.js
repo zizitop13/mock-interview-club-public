@@ -1,22 +1,63 @@
-(() => {
-  const ids = ['price-a', 'shares-a', 'price-b', 'shares-b'];
-  const inputs = ids.map((id) => document.getElementById(id));
-  const results = document.getElementById('index-results');
-  const error = document.getElementById('index-error');
-  const format = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
-  function update() {
-    const [a, sa, b, sb] = inputs.map((input) => input.valueAsNumber);
-    const valid = [a, sa, b, sb].every((n) => Number.isFinite(n) && n > 0 && n <= 10000);
-    error.hidden = valid;
-    results.hidden = !valid;
-    if (!valid) return;
-    const sum = a + b, cap = a * sa + b * sb;
-    results.textContent = `Price weighted: (${format(a)} + ${format(b)}) ÷ 2 = ${format(sum / 2)} points. Weights: A ${format(a / sum * 100)}%, B ${format(b / sum * 100)}%. Capitalization weighted: (${format(a)} × ${format(sa)} + ${format(b)} × ${format(sb)}) ÷ 6 = ${format(cap / 6)} points. Weights: A ${format(a * sa / cap * 100)}%, B ${format(b * sb / cap * 100)}%.`;
+// Values are illustrative, not market data. Shares are in millions.
+export const PRESETS = [
+  { id: 'aapl', name: 'Apple', ticker: 'AAPL', price: 200, shares: 15 },
+  { id: 'msft', name: 'Microsoft', ticker: 'MSFT', price: 400, shares: 7 },
+  { id: 'ko', name: 'Coca-Cola', ticker: 'KO', price: 60, shares: 43 },
+  { id: 'nvda', name: 'NVIDIA', ticker: 'NVDA', price: 120, shares: 25 },
+  { id: 'amzn', name: 'Amazon', ticker: 'AMZN', price: 180, shares: 11 },
+];
+export const numerator = (stocks, type) => stocks.reduce((sum, stock) => sum + stock.price * (type === 'cap' ? stock.shares : 1), 0);
+export const level = (stocks, type, divisors) => numerator(stocks, type) / divisors[type];
+export function addStock(stocks, stock, divisors) {
+  const next = [...stocks, { ...stock }];
+  const updated = Object.fromEntries(['price', 'cap'].map((type) => [type, numerator(next, type) / level(stocks, type, divisors)]));
+  return { stocks: next, divisors: updated };
+}
+
+if (typeof document !== 'undefined') {
+  const lab = document.getElementById('index-lab');
+  if (lab) {
+    let stocks, divisors, type = 'price';
+    const list = document.getElementById('index-stocks');
+    const select = document.getElementById('add-stock');
+    const add = document.getElementById('add-stock-button');
+    const format = (number) => number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    function reset() {
+      stocks = PRESETS.slice(0, 2).map((stock) => ({ ...stock }));
+      divisors = Object.fromEntries(['price', 'cap'].map((method) => [method, numerator(stocks, method) / 100]));
+      type = 'price';
+      render();
+    }
+    function updateValues() {
+      const total = numerator(stocks, type);
+      document.getElementById('index-level').textContent = format(level(stocks, type, divisors));
+      document.getElementById('index-description').textContent = type === 'price' ? 'Higher share price → more influence.' : 'Price × eligible shares → more influence.';
+      document.getElementById('index-formula').textContent = `${type === 'price' ? 'Sum of prices' : 'Total eligible market value'} ${format(total)} ÷ divisor ${format(divisors[type])} = ${format(total / divisors[type])} points. Divisor shown rounded; calculation uses full precision.`;
+      lab.querySelectorAll('[data-index-type]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.indexType === type)));
+      stocks.forEach((stock) => {
+        const weight = stock.price * (type === 'cap' ? stock.shares : 1) / total * 100;
+        const row = document.getElementById(`stock-${stock.id}`);
+        row.querySelector('[data-price]').textContent = `$${format(stock.price)}`;
+        row.querySelector('[data-weight]').textContent = `${format(weight)}% index weight`;
+        row.querySelector('[data-bar]').style.width = `${weight}%`;
+        row.querySelector('input').setAttribute('aria-valuetext', `$${format(stock.price)}`);
+      });
+    }
+    function render() {
+      list.innerHTML = stocks.map((stock) => `<div class="index-stock" id="stock-${stock.id}"><div class="stock-heading"><strong>${stock.name} <span>${stock.ticker}</span></strong><strong data-price></strong></div><label for="price-${stock.id}">Share price</label><input id="price-${stock.id}" data-stock="${stock.id}" type="range" min="10" max="500" step="1" value="${stock.price}"><div class="stock-meta"><span>${stock.shares}m eligible shares</span><span data-weight></span></div><div class="weight-track" aria-hidden="true"><span data-bar></span></div></div>`).join('');
+      list.querySelectorAll('[data-stock]').forEach((slider) => slider.addEventListener('input', () => { stocks.find((stock) => stock.id === slider.dataset.stock).price = Number(slider.value); updateValues(); }));
+      const available = PRESETS.filter((stock) => !stocks.some((item) => item.id === stock.id));
+      select.innerHTML = available.map((stock) => `<option value="${stock.id}">${stock.name} (${stock.ticker})</option>`).join('');
+      select.disabled = add.disabled = available.length === 0;
+      updateValues();
+    }
+    lab.querySelectorAll('[data-index-type]').forEach((button) => button.addEventListener('click', () => { type = button.dataset.indexType; updateValues(); }));
+    add.addEventListener('click', () => {
+      const stock = PRESETS.find((item) => item.id === select.value && !stocks.some((current) => current.id === item.id));
+      if (stock) ({ stocks, divisors } = addStock(stocks, stock, divisors));
+      render();
+    });
+    document.getElementById('reset-index').addEventListener('click', reset);
+    reset();
   }
-  inputs.forEach((input) => input.addEventListener('input', update));
-  document.getElementById('reset-index').addEventListener('click', () => {
-    [100, 1, 50, 10].forEach((value, index) => { inputs[index].value = value; });
-    update();
-  });
-  update();
-})();
+}
