@@ -8,6 +8,12 @@ export const PRESETS = [
 ];
 export const numerator = (stocks, type) => stocks.reduce((sum, stock) => sum + stock.price * (type === 'cap' ? stock.shares : 1), 0);
 export const level = (stocks, type, divisors) => numerator(stocks, type) / divisors[type];
+export function scaleDivisor(divisors, referenceDivisors, type, percent) {
+  if (!['price', 'cap'].includes(type) || !Number.isFinite(percent) || percent < 25 || percent > 200) {
+    throw new RangeError('Choose an index type and a divisor percentage from 25 to 200.');
+  }
+  return { ...divisors, [type]: referenceDivisors[type] * percent / 100 };
+}
 export function addStock(stocks, stock, divisors) {
   const next = [...stocks, { ...stock }];
   const updated = Object.fromEntries(['price', 'cap'].map((type) => [type, numerator(next, type) / level(stocks, type, divisors)]));
@@ -17,19 +23,25 @@ export function addStock(stocks, stock, divisors) {
 if (typeof document !== 'undefined') {
   const lab = document.getElementById('index-lab');
   if (lab) {
-    let stocks, divisors, type = 'price';
+    let stocks, divisors, referenceDivisors, type = 'price';
     const list = document.getElementById('index-stocks');
     const select = document.getElementById('add-stock');
     const add = document.getElementById('add-stock-button');
+    const divisorSlider = document.getElementById('index-divisor');
     const format = (number) => number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     function reset() {
       stocks = PRESETS.slice(0, 2).map((stock) => ({ ...stock }));
       divisors = Object.fromEntries(['price', 'cap'].map((method) => [method, numerator(stocks, method) / 100]));
+      referenceDivisors = { ...divisors };
       type = 'price';
       render();
     }
     function updateValues() {
       const total = numerator(stocks, type);
+      const percent = divisors[type] / referenceDivisors[type] * 100;
+      divisorSlider.value = String(Math.round(percent));
+      divisorSlider.setAttribute('aria-valuetext', `${format(divisors[type])}, ${Math.round(percent)}% of automatic divisor`);
+      document.getElementById('index-divisor-value').textContent = `${format(divisors[type])} (${Math.round(percent)}%)`;
       document.getElementById('index-level').textContent = format(level(stocks, type, divisors));
       document.getElementById('index-description').textContent = type === 'price' ? 'Higher share price → more influence.' : 'Price × eligible shares → more influence.';
       document.getElementById('index-formula').textContent = `${type === 'price' ? 'Sum of prices' : 'Total eligible market value'} ${format(total)} ÷ divisor ${format(divisors[type])} = ${format(total / divisors[type])} points. Divisor shown rounded; calculation uses full precision.`;
@@ -54,8 +66,22 @@ if (typeof document !== 'undefined') {
     lab.querySelectorAll('[data-index-type]').forEach((button) => button.addEventListener('click', () => { type = button.dataset.indexType; updateValues(); }));
     add.addEventListener('click', () => {
       const stock = PRESETS.find((item) => item.id === select.value && !stocks.some((current) => current.id === item.id));
-      if (stock) ({ stocks, divisors } = addStock(stocks, stock, divisors));
+      if (stock) {
+        const next = addStock(stocks, stock, divisors);
+        // Apply the same continuity adjustment to the automatic reference so
+        // each method retains its manual scaling percentage after an addition.
+        for (const method of ['price', 'cap']) referenceDivisors[method] *= next.divisors[method] / divisors[method];
+        ({ stocks, divisors } = next);
+      }
       render();
+    });
+    divisorSlider.addEventListener('input', () => {
+      divisors = scaleDivisor(divisors, referenceDivisors, type, Number(divisorSlider.value));
+      updateValues();
+    });
+    document.getElementById('restore-divisor').addEventListener('click', () => {
+      divisors = scaleDivisor(divisors, referenceDivisors, type, 100);
+      updateValues();
     });
     document.getElementById('reset-index').addEventListener('click', reset);
     reset();

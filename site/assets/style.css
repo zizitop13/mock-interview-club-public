@@ -1339,3 +1339,6 @@ body:has(.stage-dot-navigation) .main {
 .weight-track span { display: block; height: 100%; background: #4265ad; }
 .index-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1rem; }
 .index-note { font-size: .85rem; margin-bottom: 0; }
+.index-divisor .stock-heading label { margin: 0; font-size: 1rem; font-weight: 700; }
+.index-divisor p { font-size: .85rem; color: #526079; }
+.index-divisor button { padding: .55rem .8rem; border: 1px solid #94a3b8; border-radius: 8px; background: white; color: #172033; }

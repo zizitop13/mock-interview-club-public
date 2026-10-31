@@ -8,7 +8,7 @@ permalink: /domain/market-indexes/
 <p>An index turns a basket of stocks into one number. Explore how its rules determine which stocks matter most.</p>
 <p><strong>Illustration only:</strong> company names are real; prices and eligible share counts are invented, not live market data. This is not an actual index or investment advice.</p>
 <h2>Build your index</h2>
-<p>Move a price slider, switch the weighting method, or add a company. Watch the index level and each stock’s influence change.</p>
+<p>Move a price slider, switch the weighting method, add a company, or adjust the divisor. Watch the index level and each stock’s influence change.</p>
 <section class="index-lab" id="index-lab" aria-label="Interactive index calculator">
   <div class="index-type" role="group" aria-label="Index weighting method">
     <button type="button" data-index-type="price" aria-pressed="true">Price weighted</button>
@@ -17,9 +17,16 @@ permalink: /domain/market-indexes/
   <div class="index-overview"><div><span>Index level</span><strong id="index-level">100.00</strong><small>points</small></div><p id="index-description"></p></div>
   <div id="index-stocks"></div>
   <div class="index-actions"><label for="add-stock">Add a stock</label> <select id="add-stock"></select> <button type="button" id="add-stock-button">Add</button> <button type="button" id="reset-index">Reset</button></div>
+  <div class="index-stock index-divisor">
+    <div class="stock-heading"><label for="index-divisor">Divisor</label><strong id="index-divisor-value"></strong></div>
+    <input id="index-divisor" type="range" min="25" max="200" step="1" value="100" aria-describedby="index-divisor-hint">
+    <div class="stock-meta"><span>¼× automatic divisor</span><span>2× automatic divisor</span></div>
+    <p id="index-divisor-hint">Try doubling the divisor: the index level halves, but stock weights stay the same. This is a scaling experiment, not a market return.</p>
+    <button type="button" id="restore-divisor">Restore automatic divisor</button>
+  </div>
   <p class="index-note" id="index-formula" aria-live="polite"></p>
 </section>
-<p>The index starts at 100 points. Price changes keep the divisor fixed. Adding a stock adjusts the divisor to keep the level continuous, so adding a company is not mistaken for a market gain. Switching methods shows the current level under each method; their divisors are tracked separately. Eligible shares stay fixed in this example.</p>
+<p>The index starts at 100 points. Price changes keep the divisor fixed. Adding a stock adjusts the divisor to keep the level continuous, so adding a company is not mistaken for a market gain. The divisor slider changes that automatic value for experimentation; restore it to undo your scaling without undoing price changes. Switching methods preserves each method’s divisor setting. Eligible shares stay fixed in this example.</p>
 <h2>Why the divisor matters</h2>
 <p>Imagine a 2-for-1 split: a $100 share becomes two $50 shares. The company’s value is unchanged. In a cap-weighted index, price × shares stays the same. In a price-weighted index, the price sum falls, so the divisor must change to avoid a false drop. Actual treatments depend on the index methodology.</p>
 <h2>From calculation to system design</h2>
