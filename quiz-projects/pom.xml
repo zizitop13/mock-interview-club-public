@@ -56,5 +56,7 @@
     <module>java/algorithms/algorithms-bipartite-groups</module>
     <module>java/algorithms/algorithms-shortest-weighted-route</module>
     <module>java/language/java-switch-expression-return-vs-yield</module>
+    <module>java/language/java-record-mutable-component-map-key</module>
   </modules>
 </project>
+
