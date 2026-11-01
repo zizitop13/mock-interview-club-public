@@ -1,6 +1,6 @@
 ---
 id: java-record-mutable-component-map-key
-status: draft
+status: published
 ---
 
 ## Question
