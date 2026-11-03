@@ -55,6 +55,10 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
       path.join(outputDirectory, 'labs', 'design', 'inventory-reservations-solution.md'),
       'utf8',
     );
+    const marketIndexLab = await readFile(
+      path.join(outputDirectory, 'labs', 'design', 'market-indexes.md'),
+      'utf8',
+    );
 
     const navigationQuizCount = navigation.topics
       .reduce((total, topic) => total + topic.quizzes.length, 0);
@@ -157,7 +161,21 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(licenseServerSolution, /kind: "Lab solution"/);
     assert.match(licenseServerSolution, /paired_url: "\/labs\/coding\/floating-license-server\/"/);
     assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'coding').labs.length, 1);
-    assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'design').labs.length, 1);
+    assert.equal(navigation.lab_tracks.find(({ slug }) => slug === 'design').labs.length, 2);
+    assert.ok(navigation.lab_tracks.find(({ slug }) => slug === 'design').labs.some(({ url }) => url === '/labs/design/market-indexes/'));
+    assert.match(index, /\/labs\/design\/market-indexes\//);
+    assert.match(marketIndexLab, /permalink: "\/labs\/design\/market-indexes\/"/);
+    assert.match(marketIndexLab, /1,000 market indexes/);
+    assert.match(marketIndexLab, /## FIX in one minute/);
+    assert.match(marketIndexLab, /MsgSeqNum/);
+    assert.match(marketIndexLab, /published version must remain recoverable/);
+    assert.equal((marketIndexLab.match(/class="lab-workspace"/g) ?? []).length, 3);
+    assert.equal((marketIndexLab.match(/data-copy-lab-note/g) ?? []).length, 3);
+    assert.equal((marketIndexLab.match(/class="lab-design-step"/g) ?? []).length, 5);
+    assert.match(marketIndexLab, /data-copy-lab-summary/);
+    assert.match(marketIndexLab, /Excalidraw market index system design board/);
+    assert.match(marketIndexLab, /https:\/\/mermaid\.ink\/svg\/pako:/);
+    assert.doesNotMatch(marketIndexLab, /```mermaid|```puml|```plantuml|paired_url:/);
     assert.match(designLab, /title: "Inventory Reservations"/);
     assert.match(designLab, /permalink: "\/labs\/design\/inventory-reservations\/"/);
     assert.match(designLab, /paired_url: "\/labs\/design\/inventory-reservations-solution\/"/);
