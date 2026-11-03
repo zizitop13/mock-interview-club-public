@@ -191,6 +191,14 @@
         {% endif %}
       </header>
 
+      {% if page.kind == 'Lab' %}
+      <div class="lab-progress" data-lab-progress="{{ page.permalink | escape }}">
+        <button class="lab-copy-button" type="button" data-lab-save disabled>Save progress</button>
+        <button class="lab-copy-button" type="button" data-lab-reload hidden>Retry loading</button>
+        <a data-lab-resume hidden>Resume saved stage</a>
+        <span data-lab-status role="status">Sign in to save your notes and current stage.</span>
+      </div>
+      {% endif %}
       <article class="content">
         {{ content }}
       </article>
