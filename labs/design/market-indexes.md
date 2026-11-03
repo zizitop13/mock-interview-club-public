@@ -2,17 +2,15 @@
 
 <aside class="lab-prompt" aria-labelledby="market-index-design-prompt">
   <span class="lab-prompt-icon" aria-hidden="true">💡</span>
-  <h2 id="market-index-design-prompt">Design a transactional market-index system</h2>
+  <h2 id="market-index-design-prompt">Design a market-index system</h2>
   <p>An index provider calculates 1,000 market indexes from live stock prices supplied by several external market-data providers over FIX. Clients subscribe to index updates and query the latest published value.</p>
   <p>Design a system that recalculates affected indexes as prices arrive, preserves correct results through retries and crashes, and can explain which inputs produced a published value. Index composition and divisors can change at a scheduled effective time.</p>
 </aside>
 
-For this exercise, <strong>transactional</strong> means that each committed index version, its calculation state, and its accepted input position agree after recovery. A duplicate input must not apply the same change twice, and a published version must remain recoverable. Define your transaction and publication boundaries explicitly; a single atomic transaction across all 1,000 indexes is not required.
-
 Use price-weighted and capitalization-weighted indexes. Treat methodology as supplied business rules, not something you must invent. If you need a refresher, explore the [interactive market-index guide]({{ '/domain/market-indexes/' | relative_url }}) before starting.
 
 <nav class="stage-dot-navigation" aria-label="Page sections" data-stage-navigation>
-  <a href="#market-index-design-prompt" data-stage-link aria-label="Problem: Design a transactional market-index system" aria-current="step"><span class="stage-dot-tooltip">Transactional market indexes</span></a>
+  <a href="#market-index-design-prompt" data-stage-link aria-label="Problem: Design a market-index system" aria-current="step"><span class="stage-dot-tooltip">Market indexes</span></a>
   <a href="#fix-in-one-minute" data-stage-link aria-label="FIX in one minute"><span class="stage-dot-tooltip">FIX in one minute</span></a>
   <a href="#interview-framework" data-stage-link aria-label="Interview framework"><span class="stage-dot-tooltip">Interview framework</span></a>
   <a href="#stage-1-functional-requirements-3-minutes" data-stage-link aria-label="Stage 1: Functional requirements"><span class="stage-dot-tooltip">Functional requirements</span></a>
@@ -42,16 +40,14 @@ sequenceDiagram
     A->>P: ResendRequest (35=2), if a gap is detected
 ```
 
-The diagram illustrates a possible subscription flow, not every provider's contract. `35` identifies the message type; `34` (`MsgSeqNum`) orders messages within a session direction—not globally across providers or instruments. Retransmissions can carry `43=Y` (`PossDupFlag`). One message can contain several market-data entries, so a message sequence number alone is not an entry identifier.
-
-Agree on the provider's recovery policy: some data can be retransmitted; some is gap-filled and requires a fresh snapshot. Session recovery does not prove that your database or index consumer committed the data. A heartbeat is not an acknowledgement of a business transaction. See the [FIX session standard](https://fixtrading.org/standards/fixsession/) and [market-data overview](https://fixtrading.org/guidelines/data-transparency/).
+`35` identifies the message type; `34` (`MsgSeqNum`) orders messages within one session direction. Confirm whether the provider replays missing data or requires a fresh snapshot.
 
 ## Interview framework
 
 <div class="framework-diagram" markdown="1">
 
 ```mermaid
-flowchart TD
+flowchart LR
     FR["Functional requirements · 3 min"] --> NFR["Non-functional requirements · 2 min"]
     NFR --> Size["Sizing · 2 min"]
     Size --> Entities["Entities · 5 min"]
@@ -63,11 +59,11 @@ flowchart TD
 
 </div>
 
-Use the same delivery framework as the [Inventory Reservations lab]({{ '/labs/design/inventory-reservations/' | relative_url }}), inspired by Hello Interview's [Delivery Framework](https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery). Capture stages 1–3 below, then draw stages 4–8 on the board.
+Use the same delivery framework as the [Inventory Reservations lab]({{ '/labs/design/inventory-reservations/' | relative_url }}), inspired by Hello Interview's [Delivery Framework](https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery). Write your requirements, sizing and entities below, then sketch the design on the board.
 
 ## Stage 1: Functional requirements (3 minutes)
 
-Pick 3–5 outcomes. Clarify what constitutes an input price, when an index is recalculated, what subscribers receive, and how operators schedule a composition change. Decide which provider is authoritative for an instrument and what happens when it is unavailable. Keep trade execution and portfolio management out of scope.
+Pick 3–5 outcomes: price ingestion, index calculation, subscriptions and composition changes. Keep trading out of scope.
 
 <div class="lab-workspace-heading">
   <label class="lab-workspace-label" for="functional-requirements">Your functional requirements</label>
@@ -92,7 +88,7 @@ These describe outcomes, not technologies or components.
 
 ## Stage 2: Non-functional requirements (2 minutes)
 
-Set latency, durability and recovery targets. Distinguish receiving a tick from durably accepting it, and calculating a value from publishing it. What happens if an input is missing or stale? During a network partition, should an index pause, publish a flagged stale value, or follow another explicit policy? Define ordering per index without assuming a global order from timestamps.
+Set latency, freshness, durability and recovery targets. Decide what happens when prices are missing or stale.
 
 <div class="lab-workspace-heading">
   <label class="lab-workspace-label" for="non-functional-requirements">Your non-functional requirements</label>
@@ -111,9 +107,9 @@ For parcel tracking, accepted events must survive a node failure, duplicate deli
 
 ## Stage 3: Sizing (2 minutes)
 
-Start with 1,000 indexes. Estimate distinct instruments, constituents per index, incoming price updates, index fan-out, subscribers, and retained history. One stock can belong to many indexes: input messages, price entries, recalculations and outgoing deliveries are different rates.
+Estimate input rate, index fan-out, subscribers and retained history.
 
-If the interviewer gives no further numbers, use these <strong>exercise assumptions</strong>: 10,000 distinct instruments, 500 constituents per index on average, 20,000 price entries/s sustained and 100,000/s at peak. Assume the traffic is skewed toward popular instruments. Negotiate publication cadence, subscriber count and retention before estimating output bandwidth and storage. These are fictional workload inputs, not market statistics or a prescribed architecture.
+Exercise assumptions: 1,000 indexes, 10,000 instruments, 500 constituents per index, 20,000 price entries/s sustained and 100,000/s at peak. Choose subscriber count, publication cadence and retention.
 
 <div class="lab-workspace-heading">
   <label class="lab-workspace-label" for="sizing">Your sizing notes</label>
@@ -157,7 +153,7 @@ Separate ingest throughput from downstream fan-out and storage overhead. Round n
   <section class="lab-design-step" id="stage-6-high-level-design-10-minutes" data-stage-target="#stage-6-high-level-design-10-minutes">
     <span>Stage 6 · 10 min</span>
     <strong>High-level design</strong>
-    <p>Trace one FIX update through acceptance, affected-index calculation and delivery. Mark ownership, transaction boundaries and every acknowledgement.</p>
+    <p>Trace one FIX update through acceptance, affected-index calculation and delivery. Mark ownership and acknowledgements.</p>
   </section>
   <span class="lab-design-arrow" aria-hidden="true">→</span>
   <section class="lab-design-step" id="stage-7-data-storage-5-minutes" data-stage-target="#stage-7-data-storage-5-minutes">
@@ -173,15 +169,9 @@ Separate ingest throughput from downstream fan-out and storage overhead. Round n
   </section>
 </div>
 
-Paste your notes from stages 1–3 into the board. Follow the normal flow first, then select two failure cases to examine in detail:
+Sketch the normal flow, then explore two failures: a lost FIX connection, a crashed calculator, split brain, or a composition change during a price update.
 
-- A FIX connection drops after receipt but before durable acceptance; a reconnect retransmits data or resets the session sequence series.
-- A process crashes after committing a new index version but before delivering it to subscribers.
-- A gateway loses its lease, yet continues reading the provider while a replacement starts; prevent stale-owner writes, not just duplicate connections.
-- A popular instrument updates while a new constituent set and divisor become effective; do not mix reference-data versions.
-- A provider cannot replay a missing interval. Distinguish restoring the latest snapshot from reconstructing every historical index value.
-
-These are design probes, not a required technology stack. If embedding is restricted by your browser, [open Excalidraw in a new tab](https://excalidraw.com/).
+[Open Excalidraw in a new tab](https://excalidraw.com/). Export your drawing there to keep it; Save progress stores the text fields and current stage.
 
 <div class="lab-drawing-board" id="design-board">
   <iframe src="https://excalidraw.com/?embed=true&amp;theme=dark" title="Excalidraw market index system design board" loading="lazy" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>

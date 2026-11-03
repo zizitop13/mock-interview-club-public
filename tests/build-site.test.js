@@ -168,7 +168,7 @@ test('generates topic navigation, stable pages, and rendered Mermaid diagrams', 
     assert.match(marketIndexLab, /1,000 market indexes/);
     assert.match(marketIndexLab, /## FIX in one minute/);
     assert.match(marketIndexLab, /MsgSeqNum/);
-    assert.match(marketIndexLab, /published version must remain recoverable/);
+    assert.doesNotMatch(marketIndexLab, /transactional/i);
     assert.equal((marketIndexLab.match(/class="lab-workspace"/g) ?? []).length, 3);
     assert.equal((marketIndexLab.match(/data-copy-lab-note/g) ?? []).length, 3);
     assert.equal((marketIndexLab.match(/class="lab-design-step"/g) ?? []).length, 5);

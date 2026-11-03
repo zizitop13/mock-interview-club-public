@@ -1,3 +1,4 @@
+import { createLabProgress } from './lab-progress.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import {
   GithubAuthProvider,
@@ -37,6 +38,7 @@ if (root) {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const database = getFirestore(app);
+  const labProgress = createLabProgress({ database, doc, getDoc, runTransaction, serverTimestamp });
   const signedOutView = root.querySelector('[data-auth-signed-out]');
   const signedInView = root.querySelector('[data-auth-signed-in]');
   const name = root.querySelector('[data-auth-name]');
@@ -593,6 +595,7 @@ if (root) {
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
+    labProgress?.setUser(user);
     signedOutView.hidden = Boolean(user);
     signedInView.hidden = !user;
     showAuthRequiredLinks(Boolean(user));
