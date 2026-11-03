@@ -28,6 +28,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
   const status = root.querySelector('[data-lab-status]');
   let user = null, epoch = 0, revision = 0, ready = false, busy = false, dirty = false;
   let baseline = '', cards = null, add = null;
+  let saveTimer = null, saveDue = 0, conflicted = false;
 
   function button(text, action) {
     const element = document.createElement('button');
@@ -89,15 +90,26 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
   function updateControls() {
     save.disabled = !ready || busy;
     for (const input of [...notes, ...(cards?.querySelectorAll('input, textarea, button') ?? [])]) {
-      input.disabled = !ready || busy;
+      input.disabled = !ready;
     }
-    if (add) add.disabled = !ready || busy || cards.children.length >= 30;
+    if (add) add.disabled = !ready || cards.children.length >= 30;
+  }
+
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    if (dirty && ready && !conflicted) {
+      saveTimer = setTimeout(saveProgress, Math.max(0, saveDue - Date.now()));
+    }
   }
 
   function changed() {
-    if (!ready || busy) return;
+    if (!ready) return;
     dirty = JSON.stringify(snapshot()) !== baseline;
-    status.textContent = dirty ? 'Unsaved changes. Save progress to keep them.' : 'Progress saved.';
+    saveDue = Date.now() + 3000;
+    if (!busy && !conflicted) {
+      status.textContent = dirty ? 'Waiting to save…' : 'Progress saved.';
+    }
+    scheduleSave();
     updateControls();
   }
   notes.forEach(note => note.addEventListener('input', changed));
@@ -118,6 +130,9 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
   }
 
   async function setUser(nextUser) {
+    clearTimeout(saveTimer);
+    conflicted = false;
+    save.hidden = true;
     const ticket = ++epoch;
     user = nextUser;
     ready = false; busy = false; dirty = false; revision = 0;
@@ -135,7 +150,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
       }
       baseline = JSON.stringify(snapshot());
       ready = true;
-      status.textContent = saved.exists() ? 'Saved progress restored.' : 'Your notes are private. Use Save progress to keep them.';
+      status.textContent = saved.exists() ? 'Saved progress restored.' : 'Changes save automatically.';
     } catch {
       if (ticket !== epoch) return;
       status.textContent = 'Could not load progress. Retry before editing to protect saved work.';
@@ -144,8 +159,9 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     updateControls();
   }
   reload.addEventListener('click', () => setUser(user));
-  save.addEventListener('click', async () => {
-    if (!ready || busy || !user) return;
+  save.addEventListener('click', () => { clearTimeout(saveTimer); saveProgress(); });
+  async function saveProgress() {
+    if (!ready || busy || !user || !dirty || conflicted) return;
     const payload = JSON.stringify(snapshot());
     if (new TextEncoder().encode(payload).length > MAX_PAYLOAD) {
       status.textContent = 'Notes are too large. Keep the total below 100 KB.';
@@ -154,6 +170,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     const ticket = epoch, expectedRevision = revision;
     const reference = doc(database, 'users', user.uid, 'labProgress', labId);
     busy = true;
+    save.hidden = true;
     updateControls();
     status.textContent = 'Saving progress…';
     try {
@@ -166,17 +183,25 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
       revision = expectedRevision + 1;
       baseline = payload;
       dirty = JSON.stringify(snapshot()) !== baseline;
-      status.textContent = dirty ? 'Notes saved. Stage changed since saving.' : 'Progress saved.';
+      status.textContent = dirty ? 'Waiting to save…' : 'Progress saved.';
     } catch (error) {
       if (ticket !== epoch) return;
       dirty = true;
-      status.textContent = error.message === 'conflict'
+      conflicted = error.message === 'conflict';
+      clearTimeout(saveTimer);
+      save.hidden = conflicted;
+      saveDue = Date.now() + 3000;
+      status.textContent = conflicted
         ? 'Progress changed in another tab. Copy your notes before reloading this page.'
-        : 'Could not save progress. Your edits are still here; try Save progress again.';
+        : 'Could not save progress. Retrying…';
     } finally {
-      if (ticket === epoch) { busy = false; updateControls(); }
+      if (ticket === epoch) {
+        busy = false;
+        scheduleSave();
+        updateControls();
+      }
     }
-  });
+  }
   updateControls();
   return { setUser };
 }
