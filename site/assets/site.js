@@ -147,9 +147,18 @@ for (const button of document.querySelectorAll('[data-copy-lab-note]')) {
 
 for (const button of document.querySelectorAll('[data-copy-lab-summary]')) {
   button.addEventListener('click', () => {
-    const summary = [...document.querySelectorAll('[data-lab-stage-title]')]
+    let summary = [...document.querySelectorAll('[data-lab-stage-title]')]
       .map((note) => `${note.dataset.labStageTitle}\n\n${note.value.trim()}`)
       .join('\n\n');
+    if (button.hasAttribute('data-copy-lab-entities')) {
+      const entities = [...document.querySelectorAll('.lab-entity-card')]
+        .map((card, index) => {
+          const name = card.querySelector('[data-entity-field="name"]')?.value.trim() ?? '';
+          const body = card.querySelector('[data-entity-field="body"]')?.value.trim() ?? '';
+          return `Entity ${index + 1}: ${name}\n\n${body}`;
+        });
+      summary += '\n\nEntities\n\n' + entities.join('\n\n');
+    }
     copyText(summary, button);
   });
 }
