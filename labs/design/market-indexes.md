@@ -142,7 +142,7 @@ Separate ingest throughput from downstream fan-out and storage overhead. Round n
 
 ## Stages 5–8: Design on the board (35 minutes)
 
-<button class="lab-copy-summary-button" type="button" data-copy-lab-summary>Copy stages 1–3 for the board</button>
+<button class="lab-copy-summary-button" type="button" data-copy-lab-summary data-copy-lab-entities>Copy stages 1–4 for the board</button>
 
 <div class="lab-design-flow" aria-label="Visual design stages">
   <section class="lab-design-step" id="stage-5-api-5-minutes" data-stage-target="#stage-5-api-5-minutes">
