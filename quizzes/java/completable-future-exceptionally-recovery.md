@@ -1,6 +1,6 @@
 ---
 id: java-completable-future-exceptionally-recovery
-status: draft
+status: published
 ---
 
 ## Question
