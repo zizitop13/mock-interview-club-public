@@ -16,8 +16,8 @@ Use price-weighted and capitalization-weighted indexes. Treat methodology as sup
   <a href="#stage-1-functional-requirements-3-minutes" data-stage-link aria-label="Stage 1: Functional requirements"><span class="stage-dot-tooltip">Functional requirements</span></a>
   <a href="#stage-2-non-functional-requirements-2-minutes" data-stage-link aria-label="Stage 2: Non-functional requirements"><span class="stage-dot-tooltip">Non-functional requirements</span></a>
   <a href="#stage-3-sizing-2-minutes" data-stage-link aria-label="Stage 3: Sizing"><span class="stage-dot-tooltip">Sizing</span></a>
-  <a href="#stages-48-design-on-the-board-40-minutes" data-stage-link aria-label="Stages 4–8: Design on the board"><span class="stage-dot-tooltip">Stages 4–8: Design on the board</span></a>
   <a href="#stage-4-entities-5-minutes" data-stage-link aria-label="Stage 4: Entities"><span class="stage-dot-tooltip">Entities</span></a>
+  <a href="#stages-58-design-on-the-board-35-minutes" data-stage-link aria-label="Stages 5–8: Design on the board"><span class="stage-dot-tooltip">Stages 5–8: Design on the board</span></a>
   <a href="#stage-5-api-5-minutes" data-stage-link aria-label="Stage 5: API"><span class="stage-dot-tooltip">API</span></a>
   <a href="#stage-6-high-level-design-10-minutes" data-stage-link aria-label="Stage 6: High-level design"><span class="stage-dot-tooltip">High-level design</span></a>
   <a href="#stage-7-data-storage-5-minutes" data-stage-link aria-label="Stage 7: Data storage"><span class="stage-dot-tooltip">Data storage</span></a>
@@ -131,19 +131,20 @@ Separate ingest throughput from downstream fan-out and storage overhead. Round n
 
 </details>
 
-[← Previous: Non-functional](#stage-2-non-functional-requirements-2-minutes) · [Next: Design on the board →](#stages-48-design-on-the-board-40-minutes)
+[← Previous: Non-functional](#stage-2-non-functional-requirements-2-minutes) · [Next: Entities →](#stage-4-entities-5-minutes)
 
-## Stages 4–8: Design on the board (40 minutes)
+<section class="lab-design-step" id="stage-4-entities-5-minutes" data-stage-target="#stage-4-entities-5-minutes">
+  <h2>Stage 4: Entities (5 minutes)</h2>
+  <p>Identify instruments, source sessions, price entries, versioned index definitions and published values. Show identities, effective times and relationships.</p>
+</section>
+
+[← Previous: Sizing](#stage-3-sizing-2-minutes) · [Next: Design on the board →](#stages-58-design-on-the-board-35-minutes)
+
+## Stages 5–8: Design on the board (35 minutes)
 
 <button class="lab-copy-summary-button" type="button" data-copy-lab-summary>Copy stages 1–3 for the board</button>
 
 <div class="lab-design-flow" aria-label="Visual design stages">
-  <section class="lab-design-step" id="stage-4-entities-5-minutes" data-stage-target="#stage-4-entities-5-minutes">
-    <span>Stage 4 · 5 min</span>
-    <strong>Entities</strong>
-    <p>Identify instruments, source sessions, price entries, versioned index definitions and published values. Show identities, effective times and relationships.</p>
-  </section>
-  <span class="lab-design-arrow" aria-hidden="true">→</span>
   <section class="lab-design-step" id="stage-5-api-5-minutes" data-stage-target="#stage-5-api-5-minutes">
     <span>Stage 5 · 5 min</span>
     <strong>API</strong>
@@ -177,7 +178,7 @@ Sketch the normal flow, then explore two failures: a lost FIX connection, a cras
   <iframe src="https://excalidraw.com/?embed=true&amp;theme=dark" title="Excalidraw market index system design board" loading="lazy" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 </div>
 
-[← Previous: Sizing](#stage-3-sizing-2-minutes) · [Next: Further reading →](#further-reading-after-the-interview)
+[← Previous: Entities](#stage-4-entities-5-minutes) · [Next: Further reading →](#further-reading-after-the-interview)
 
 ## Further reading after the interview
 
