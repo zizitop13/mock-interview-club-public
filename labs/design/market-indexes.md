@@ -172,7 +172,7 @@ Separate ingest throughput from downstream fan-out and storage overhead. Round n
 
 Sketch the normal flow, then explore two failures: a lost FIX connection, a crashed calculator, split brain, or a composition change during a price update.
 
-[Open Excalidraw in a new tab](https://excalidraw.com/). Export your drawing there to keep it; Your text fields and current stage save automatically after 3 seconds without changes.
+[Open Excalidraw in a new tab](https://excalidraw.com/). Export your drawing there to keep it; Your text fields save automatically after 3 seconds without changes.
 
 <div class="lab-drawing-board" id="design-board">
   <iframe src="https://excalidraw.com/?embed=true&amp;theme=dark" title="Excalidraw market index system design board" loading="lazy" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>

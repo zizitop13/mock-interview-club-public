@@ -24,11 +24,17 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
   notes.forEach(note => { note.maxLength = 20000; });
   const save = root.querySelector('[data-lab-save]');
   const reload = root.querySelector('[data-lab-reload]');
-  const resume = root.querySelector('[data-lab-resume]');
   const status = root.querySelector('[data-lab-status]');
   let user = null, epoch = 0, revision = 0, ready = false, busy = false, dirty = false;
   let baseline = '', cards = null, add = null;
-  let saveTimer = null, saveDue = 0, conflicted = false;
+  let saveTimer = null, saveDue = 0, conflicted = false, statusTimer = null;
+
+  function showStatus(message, temporary = false) {
+    clearTimeout(statusTimer);
+    status.textContent = message;
+    root.hidden = !message;
+    if (temporary) statusTimer = setTimeout(() => { root.hidden = true; }, 2000);
+  }
 
   function button(text, action) {
     const element = document.createElement('button');
@@ -83,7 +89,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
       notes: Object.fromEntries(notes.map(note => [note.id, note.value])),
       entities: [...(cards?.children ?? [])].map(card => Object.fromEntries(
         [...card.querySelectorAll('[data-entity-field]')].map(input => [input.dataset.entityField, input.value]))),
-      stage: document.querySelector('[data-stage-link][aria-current="step"]')?.hash ?? '',
+      stage: '',
     };
   }
 
@@ -107,15 +113,13 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     dirty = JSON.stringify(snapshot()) !== baseline;
     saveDue = Date.now() + 3000;
     if (!busy && !conflicted) {
-      status.textContent = dirty ? 'Waiting to save…' : 'Progress saved.';
+      showStatus('');
     }
     scheduleSave();
     updateControls();
   }
   notes.forEach(note => note.addEventListener('input', changed));
   cards?.addEventListener('input', changed);
-  const navigation = document.querySelector('[data-stage-navigation]');
-  if (navigation) new MutationObserver(changed).observe(navigation, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
   window.addEventListener('beforeunload', event => {
     if (dirty || busy) { event.preventDefault(); event.returnValue = ''; }
   });
@@ -124,9 +128,6 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     notes.forEach(note => { note.value = value.notes[note.id] ?? ''; });
     cards?.replaceChildren();
     value.entities.forEach(addCard);
-    const knownStage = [...document.querySelectorAll('[data-stage-link]')].some(link => link.hash === value.stage);
-    resume.hidden = !knownStage;
-    if (knownStage) resume.href = value.stage;
   }
 
   async function setUser(nextUser) {
@@ -139,7 +140,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     render({ notes: {}, entities: [], stage: '' });
     reload.hidden = true;
     updateControls();
-    status.textContent = user ? 'Loading your progress…' : 'Sign in to save your notes and current stage.';
+    showStatus('');
     if (!user) return;
     try {
       const saved = await getDoc(doc(database, 'users', user.uid, 'labProgress', labId));
@@ -150,10 +151,10 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
       }
       baseline = JSON.stringify(snapshot());
       ready = true;
-      status.textContent = saved.exists() ? 'Saved progress restored.' : 'Changes save automatically.';
+      showStatus('');
     } catch {
       if (ticket !== epoch) return;
-      status.textContent = 'Could not load progress. Retry before editing to protect saved work.';
+      showStatus('Could not load progress. Retry before editing.');
       reload.hidden = false;
     }
     updateControls();
@@ -164,7 +165,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     if (!ready || busy || !user || !dirty || conflicted) return;
     const payload = JSON.stringify(snapshot());
     if (new TextEncoder().encode(payload).length > MAX_PAYLOAD) {
-      status.textContent = 'Notes are too large. Keep the total below 100 KB.';
+      showStatus('Notes are too large. Keep the total below 100 KB.');
       return;
     }
     const ticket = epoch, expectedRevision = revision;
@@ -172,7 +173,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
     busy = true;
     save.hidden = true;
     updateControls();
-    status.textContent = 'Saving progress…';
+    showStatus('Saving progress…');
     try {
       await runTransaction(database, async transaction => {
         const stored = await transaction.get(reference);
@@ -183,7 +184,7 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
       revision = expectedRevision + 1;
       baseline = payload;
       dirty = JSON.stringify(snapshot()) !== baseline;
-      status.textContent = dirty ? 'Waiting to save…' : 'Progress saved.';
+      showStatus(dirty ? '' : 'Progress saved.', !dirty);
     } catch (error) {
       if (ticket !== epoch) return;
       dirty = true;
@@ -191,9 +192,9 @@ export function createLabProgress({ database, doc, getDoc, runTransaction, serve
       clearTimeout(saveTimer);
       save.hidden = conflicted;
       saveDue = Date.now() + 3000;
-      status.textContent = conflicted
+      showStatus(conflicted
         ? 'Progress changed in another tab. Copy your notes before reloading this page.'
-        : 'Could not save progress. Retrying…';
+        : 'Could not save progress. Retrying…');
     } finally {
       if (ticket === epoch) {
         busy = false;

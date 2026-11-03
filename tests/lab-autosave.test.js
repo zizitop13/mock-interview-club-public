@@ -33,7 +33,7 @@ test('autosave debounces edits, preserves edits during a write, retries and canc
   const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(); };
   const edit = value => { note.value = value; note.input(); };
   await sut.setUser({ uid: 'one' });
-  assert.equal(controls.status.textContent, 'Changes save automatically.');
+  assert.equal(root.hidden, true);
   edit('first');
   t.mock.timers.tick(2000);
   edit('latest');
@@ -59,6 +59,9 @@ test('autosave debounces edits, preserves edits during a write, retries and canc
   t.mock.timers.tick(3000);
   await flush();
   assert.equal(writes[2].notes.sizing, 'retry me');
+  assert.equal(root.hidden, false);
+  t.mock.timers.tick(2000);
+  assert.equal(root.hidden, true);
   edit('do not save after sign-out');
   await sut.setUser(null);
   t.mock.timers.tick(3000);

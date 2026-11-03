@@ -1343,7 +1343,8 @@ body:has(.stage-dot-navigation) .main {
 .index-divisor p { font-size: .85rem; color: #526079; }
 .index-divisor button { padding: .55rem .8rem; border: 1px solid #94a3b8; border-radius: 8px; background: white; color: #172033; }
 
-.lab-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 24px; }
+.lab-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; line-height: 1.4; }
+.lab-progress[hidden] { display: none; }
 .lab-progress [role="status"] { flex-basis: 100%; color: var(--muted); }
 .lab-entity-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; margin-bottom: 16px; }
 .lab-entity-card { min-width: 0; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
@@ -1353,4 +1354,4 @@ body:has(.stage-dot-navigation) .main {
 .framework-diagram { overflow-x: auto; }
 
 /* Save without scrolling away from the stage being recorded. */
-.lab-progress { position: fixed; right: 16px; bottom: 16px; z-index: 19; max-width: min(360px, calc(100vw - 32px)); margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface, #111925); }
+.lab-progress { position: fixed; right: 16px; bottom: 16px; z-index: 19; max-width: min(280px, calc(100vw - 32px)); margin: 0; padding: 6px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface, #111925); }
