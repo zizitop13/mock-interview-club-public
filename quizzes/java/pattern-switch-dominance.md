@@ -1,6 +1,6 @@
 ---
 id: java-pattern-switch-dominance
-status: draft
+status: published
 ---
 
 ## Question
