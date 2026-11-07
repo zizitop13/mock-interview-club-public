@@ -1,6 +1,6 @@
 ---
 id: java-phaser-party-leak
-status: draft
+status: published
 ---
 
 ## Question
