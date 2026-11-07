@@ -59,6 +59,7 @@
     <module>java/language/java-record-mutable-component-map-key</module>
     <module>java/concurrency/java-completable-future-exceptionally-recovery</module>
     <module>java/language/java-pattern-switch-dominance</module>
+    <module>java/concurrency/java-phaser-party-leak</module>
   </modules>
 </project>
 
