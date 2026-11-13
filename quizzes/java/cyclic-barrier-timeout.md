@@ -1,6 +1,6 @@
 ---
 id: java-cyclic-barrier-timeout
-status: draft
+status: published
 ---
 
 ## Question
