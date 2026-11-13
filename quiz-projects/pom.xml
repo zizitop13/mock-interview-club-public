@@ -61,6 +61,7 @@
     <module>java/language/java-pattern-switch-dominance</module>
     <module>java/concurrency/java-phaser-party-leak</module>
     <module>java/concurrency/java-nested-executor-starvation</module>
+    <module>java/concurrency/java-cyclic-barrier-timeout</module>
   </modules>
 </project>
 
