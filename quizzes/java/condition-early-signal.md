@@ -1,6 +1,6 @@
 ---
 id: java-condition-early-signal
-status: draft
+status: published
 ---
 
 ## Question
