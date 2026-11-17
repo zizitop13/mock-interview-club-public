@@ -63,6 +63,7 @@
     <module>java/concurrency/java-nested-executor-starvation</module>
     <module>java/concurrency/java-cyclic-barrier-timeout</module>
     <module>java/concurrency/java-caller-runs-backpressure</module>
+    <module>java/concurrency/java-condition-early-signal</module>
   </modules>
 </project>
 
